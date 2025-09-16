@@ -9,6 +9,19 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+      window.firebase = {
+        initializeApp,
+        getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut,
+        getFirestore, doc, getDoc, setDoc
+      };
+    </script>
+    
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -73,6 +86,21 @@
             color: white;
             border-color: #10b981;
         }
+        .btn-google {
+            background-color: white;
+            color: #374151;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .btn-google:hover {
+            background-color: #f9fafb;
+        }
 
         .exercise-link {
             cursor: pointer;
@@ -107,55 +135,18 @@
 
     <!-- Login Page -->
     <div id="login-page" class="min-h-screen flex items-center justify-center p-4 bg-gray-100">
-        <div class="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-xl">
-            <div class="text-center">
-                <h1 class="text-3xl font-bold text-gray-800">Welcome Back!</h1>
-                <p class="text-gray-500 mt-2">Log in to continue your journey.</p>
+        <div class="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-xl text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Welcome to Rollox Fitplan</h1>
+            <p class="text-gray-500 mt-2">Sign in to begin your fitness journey.</p>
+            <div class="mt-8">
+                <button id="google-signin-btn" class="btn-google w-full justify-center">
+                    <svg class="w-5 h-5" viewBox="0 0 48 48">
+                        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C39.904,36.213,44,30.668,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+                    </svg>
+                    Sign In with Google
+                </button>
+                 <p id="login-error" class="text-center text-sm text-red-600 mt-4 hidden">Could not sign in with Google. Please try again.</p>
             </div>
-            <form id="login-form" class="mt-8 space-y-6">
-                <div>
-                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="login-email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                </div>
-                <div>
-                    <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="login-password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                </div>
-                <div>
-                    <button type="submit" class="w-full btn-primary">Login</button>
-                    <p id="login-error" class="text-center text-sm text-red-600 mt-2 hidden">Invalid email or password.</p>
-                </div>
-                 <p class="text-center text-sm text-gray-600">
-                    Don't have an account? <a href="#" id="go-to-signup" class="font-medium text-emerald-600 hover:text-emerald-500">Sign Up</a>
-                </p>
-            </form>
-        </div>
-    </div>
-
-    <!-- Signup Page -->
-    <div id="signup-page" class="hidden min-h-screen flex items-center justify-center p-4 bg-gray-100">
-        <div class="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-xl">
-            <div class="text-center">
-                <h1 class="text-3xl font-bold text-gray-800">Create Your Account</h1>
-                <p class="text-gray-500 mt-2">Start your fitness journey today.</p>
-            </div>
-            <form id="signup-form" class="mt-8 space-y-6">
-                <div>
-                    <label for="signup-email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="signup-email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                </div>
-                <div>
-                    <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="signup-password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                </div>
-                <div>
-                    <button type="submit" class="w-full btn-primary">Create Account</button>
-                    <p id="signup-error" class="text-center text-sm text-red-600 mt-2 hidden">An account with this email already exists.</p>
-                </div>
-                 <p class="text-center text-sm text-gray-600">
-                    Already have an account? <a href="#" id="go-to-login" class="font-medium text-emerald-600 hover:text-emerald-500">Login</a>
-                </p>
-            </form>
         </div>
     </div>
 
@@ -731,21 +722,18 @@
     <script>
     // Self-invoking function to encapsulate the application logic
     const app = (() => {
-        // State management object
+        // --- App State ---
         let state = {};
-        let editingRoutineId = null; // Track which routine is being edited
-
+        let editingRoutineId = null;
         let progressChartInstance = null;
-        let stopwatch = {
-            startTime: 0,
-            elapsedTime: 0,
-            timerInterval: null,
-            running: false
-        };
+        let stopwatch = { startTime: 0, elapsedTime: 0, timerInterval: null, running: false };
+
+        // --- Firebase State ---
+        let auth, db, userId;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         // --- DOM Element Selectors ---
         const loginPage = document.getElementById('login-page');
-        const signupPage = document.getElementById('signup-page');
         const setupPage = document.getElementById('setup-page');
         const appContainer = document.getElementById('app-container');
         const mainNav = document.getElementById('main-nav');
@@ -766,23 +754,46 @@
         const builderModal = document.getElementById('builder-modal');
         const modalBackdrop = document.getElementById('modal-backdrop');
 
-
         // --- Initialization ---
         function init() {
-            if (loadState()) {
-                showApp();
-            } else {
+            try {
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                const firebaseApp = window.firebase.initializeApp(firebaseConfig);
+                auth = window.firebase.getAuth(firebaseApp);
+                db = window.firebase.getFirestore(firebaseApp);
+                attachAuthListener();
+                attachEventListeners();
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                // Fallback for environments without Firebase config
                 showAuthPage('login-page');
+                document.getElementById('google-signin-btn').disabled = true;
+                document.getElementById('google-signin-btn').textContent = 'Setup Incomplete';
             }
-            attachEventListeners();
         }
+        
+        function attachAuthListener() {
+            window.firebase.onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    userId = user.uid;
+                    await loadState(); // Load data from Firestore
+                    if (state && state.user) {
+                        showApp();
+                    } else {
+                        showAuthPage('setup-page');
+                    }
+                } else {
+                    userId = null;
+                    state = {};
+                    showAuthPage('login-page');
+                }
+            });
+        }
+
 
         // --- Event Listeners ---
         function attachEventListeners() {
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
-            document.getElementById('signup-form').addEventListener('submit', handleSignup);
-            document.getElementById('go-to-signup').addEventListener('click', (e) => { e.preventDefault(); showAuthPage('signup-page'); });
-            document.getElementById('go-to-login').addEventListener('click', (e) => { e.preventDefault(); showAuthPage('login-page'); });
+            document.getElementById('google-signin-btn').addEventListener('click', handleGoogleSignIn);
             document.getElementById('logout-button').addEventListener('click', handleLogout);
 
             document.getElementById('setup-form').addEventListener('submit', handleSetupSubmit);
@@ -899,71 +910,57 @@
 
 
         // --- State Management & Authentication ---
-        function loadState() {
-            const usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
-            const currentUserEmail = localStorage.getItem('rolloxFitplanCurrentUser');
-            
-            if (currentUserEmail && usersDB[currentUserEmail]) {
-                state = usersDB[currentUserEmail];
-                return true; // User is logged in and data loaded
+        async function loadState() {
+            if (!userId) return false;
+            const docRef = window.firebase.doc(db, "artifacts", appId, "users", userId, "profile", "data");
+            try {
+                const docSnap = await window.firebase.getDoc(docRef);
+                if (docSnap.exists()) {
+                    state = docSnap.data();
+                    return true;
+                } else {
+                    state = {}; // New user, empty state
+                    return false;
+                }
+            } catch (error) {
+                console.error("Error loading state from Firestore:", error);
+                return false;
             }
-            return false; // No user logged in
         }
 
-        function saveState() {
-            const usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
-            const currentUserEmail = localStorage.getItem('rolloxFitplanCurrentUser');
-
-            if (currentUserEmail) {
-                usersDB[currentUserEmail] = state;
-                localStorage.setItem('rolloxFitplanUsersDB', JSON.stringify(usersDB));
+        async function saveState() {
+            if (!userId) return;
+            const docRef = window.firebase.doc(db, "artifacts", appId, "users", userId, "profile", "data");
+            try {
+                await window.firebase.setDoc(docRef, state);
+            } catch (error) {
+                console.error("Error saving state to Firestore:", error);
             }
         }
         
-        function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
-            const loginError = document.getElementById('login-error');
-
-            if (usersDB[email] && usersDB[email].password === password) {
-                localStorage.setItem('rolloxFitplanCurrentUser', email);
-                loginError.classList.add('hidden');
-                init(); // Re-initialize the app to load the user's state
-            } else {
-                loginError.classList.remove('hidden');
+        async function handleGoogleSignIn() {
+            const provider = new window.firebase.GoogleAuthProvider();
+            try {
+                await window.firebase.signInWithPopup(auth, provider);
+                // onAuthStateChanged will handle the rest
+            } catch (error) {
+                console.error("Google Sign-In failed:", error);
+                document.getElementById('login-error').classList.remove('hidden');
             }
         }
 
-        function handleSignup(e) {
-            e.preventDefault();
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            let usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
-            const signupError = document.getElementById('signup-error');
-
-            if (usersDB[email]) {
-                signupError.classList.remove('hidden');
-            } else {
-                usersDB[email] = { password: password, user: null }; // Create a placeholder for the user profile
-                localStorage.setItem('rolloxFitplanUsersDB', JSON.stringify(usersDB));
-                localStorage.setItem('rolloxFitplanCurrentUser', email);
-                signupError.classList.add('hidden');
-                init(); // Re-initialize to load empty state for new user
+        async function handleLogout() {
+            try {
+                await window.firebase.signOut(auth);
+                // onAuthStateChanged will handle UI switch
+            } catch (error) {
+                console.error("Logout failed:", error);
             }
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('rolloxFitplanCurrentUser');
-            state = {}; // Clear current state
-            window.location.reload(); // Reload the page to reset everything
         }
 
         // --- UI Switching ---
         function showAuthPage(pageId) {
             loginPage.classList.add('hidden');
-            signupPage.classList.add('hidden');
             setupPage.classList.add('hidden');
             appContainer.classList.add('hidden');
             
@@ -974,16 +971,10 @@
 
         function showApp() {
             loginPage.style.display = 'none';
-            signupPage.style.display = 'none';
             setupPage.style.display = 'none';
             appContainer.style.display = 'block';
             appContainer.classList.remove('hidden');
             
-            if (!state.user) {
-                showAuthPage('setup-page');
-                return;
-            }
-
             updateDashboard();
             renderProgressHistory();
             renderDailyMeals();
@@ -1024,7 +1015,7 @@
         }
 
         // --- Event Handlers ---
-        function handleSetupSubmit(e) {
+        async function handleSetupSubmit(e) {
             e.preventDefault();
             state.user = {
                 weight: parseFloat(document.getElementById('weight').value),
@@ -1047,7 +1038,7 @@
             state.activeWorkoutPlan = 'generated';
             generateWorkoutPlan();
             
-            saveState();
+            await saveState();
             showApp();
         }
 
@@ -1061,11 +1052,11 @@
             }
         }
         
-        function handleBackClick() {
+        async function handleBackClick() {
             if (state.pageHistory && state.pageHistory.length > 0) {
                 const previousPageId = state.pageHistory.pop();
                 showPage(previousPageId, true);
-                saveState();
+                await saveState();
             }
         }
         
@@ -1074,7 +1065,7 @@
             menuOverlay.classList.toggle('hidden');
         }
 
-        function handleAddMeal(e) {
+        async function handleAddMeal(e) {
             e.preventDefault();
             const mealName = document.getElementById('meal-name').value;
             const mealCalories = parseInt(document.getElementById('meal-calories').value, 10);
@@ -1082,7 +1073,7 @@
             const mealCarbs = parseInt(document.getElementById('meal-carbs').value, 10) || 0;
             const mealType = document.getElementById('meal-type').value;
 
-            addMealToState({
+            await addMealToState({
                 name: mealName,
                 calories: mealCalories,
                 protein: mealProtein,
@@ -1093,19 +1084,19 @@
             document.getElementById('add-meal-form').reset();
         }
         
-        function handleDeleteMeal(e) {
+        async function handleDeleteMeal(e) {
             if (!e.target.matches('.delete-meal-btn')) return;
             const mealId = parseInt(e.target.dataset.id, 10);
             const today = new Date().toISOString().split('T')[0];
             
             state.meals[today] = state.meals[today].filter(meal => meal.id !== mealId);
             
-            saveState();
+            await saveState();
             renderDailyMeals();
             updateDashboard();
         }
 
-        function handleAddExpense(e) {
+        async function handleAddExpense(e) {
             e.preventDefault();
             const desc = document.getElementById('expense-desc').value;
             const amount = parseFloat(document.getElementById('expense-amount').value);
@@ -1120,21 +1111,21 @@
                 amount: amount
             });
 
-            saveState();
+            await saveState();
             renderBudgetPage();
             document.getElementById('add-expense-form').reset();
         }
 
-        function handleDeleteExpense(e) {
+        async function handleDeleteExpense(e) {
             if(!e.target.matches('.delete-expense-btn')) return;
             const expenseId = parseInt(e.target.dataset.id, 10);
             state.expenses = state.expenses.filter(exp => exp.id !== expenseId);
-            saveState();
+            await saveState();
             renderBudgetPage();
         }
 
 
-        function handleWorkoutClick(e) {
+        async function handleWorkoutClick(e) {
             const exerciseTarget = e.target.closest('.exercise-link');
             const completeTarget = e.target.closest('.complete-workout-btn');
             
@@ -1147,12 +1138,12 @@
                 const today = new Date().toISOString().split('T')[0];
                 if(!state.completedWorkouts) state.completedWorkouts = {};
                 state.completedWorkouts[today] = day; 
-                saveState();
+                await saveState();
                 renderWorkoutPlan(); 
             }
         }
         
-        function handleProfileUpdate(e) {
+        async function handleProfileUpdate(e) {
             e.preventDefault();
             const originalGoal = state.user.fitnessGoal;
             
@@ -1167,7 +1158,7 @@
                 generateWorkoutPlan();
             }
 
-            saveState();
+            await saveState();
             updateDashboard();
             populatePlanSelector(); // Refresh plan selector in case generated plan name changes
             renderWorkoutPlan();
@@ -1218,7 +1209,7 @@
             return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(centiseconds).padStart(2, '0')}`;
         }
 
-        function handleProgressSubmit(e) {
+        async function handleProgressSubmit(e) {
             e.preventDefault();
             const weightInput = document.getElementById('progress-weight');
             const newWeight = parseFloat(weightInput.value);
@@ -1228,13 +1219,13 @@
 
             state.progress.push({ date: new Date().toISOString().split('T')[0], weight: newWeight });
             state.user.weight = newWeight;
-            saveState();
+            await saveState();
             renderProgressHistory();
             updateDashboard();
             weightInput.value = '';
         }
 
-        function handleFoodResultClick(e) {
+        async function handleFoodResultClick(e) {
             const button = e.target.closest('.add-food-btn');
             if (!button) return;
 
@@ -1246,22 +1237,22 @@
             }
         }
         
-        function handleAddFoodFromModal(e) {
+        async function handleAddFoodFromModal(e) {
             e.preventDefault();
             if (!state.foodToAdd) return;
 
             const mealType = document.getElementById('add-food-modal-type').value;
-            addMealToState({ ...state.foodToAdd, type: mealType });
+            await addMealToState({ ...state.foodToAdd, type: mealType });
             closeAddFoodModal();
         }
         
-        function handlePlanSelection(e) {
+        async function handlePlanSelection(e) {
             state.activeWorkoutPlan = e.target.value;
-            saveState();
+            await saveState();
             renderWorkoutPlan();
         }
         
-        function handleCustomRoutineClick(e) {
+        async function handleCustomRoutineClick(e) {
             const editBtn = e.target.closest('.edit-routine-btn');
             const deleteBtn = e.target.closest('.delete-routine-btn');
             
@@ -1276,13 +1267,13 @@
                     if (state.activeWorkoutPlan == routineId) {
                         state.activeWorkoutPlan = 'generated';
                     }
-                    saveState();
+                    await saveState();
                     renderCustomRoutines();
                 }
             }
         }
         
-        function handleSaveRoutine() {
+        async function handleSaveRoutine() {
             const nameInput = document.getElementById('builder-routine-name');
             const name = nameInput.value.trim();
             if (!name) {
@@ -1317,7 +1308,7 @@
                 state.customWorkouts.push(routine);
             }
             
-            saveState();
+            await saveState();
             closeBuilderModal();
             renderCustomRoutines();
         }
@@ -1779,7 +1770,7 @@
             return { start, end };
         }
 
-        function addMealToState(mealData) {
+        async function addMealToState(mealData) {
             if (!mealData.name || isNaN(mealData.calories) || mealData.calories <= 0) {
                 return;
             }
@@ -1797,7 +1788,7 @@
                 type: mealData.type
             });
             
-            saveState();
+            await saveState();
             renderDailyMeals();
             updateDashboard();
         }
