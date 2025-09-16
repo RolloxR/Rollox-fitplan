@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FitPlan - Your Personal Diet & Fitness Planner</title>
+    <title>Rollox FitPlan - Your Personal Diet & Fitness Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -105,15 +105,69 @@
 </head>
 <body class="antialiased text-slate-700">
 
+    <!-- Login Page -->
+    <div id="login-page" class="min-h-screen flex items-center justify-center p-4 bg-gray-100">
+        <div class="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-xl">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-gray-800">Welcome Back!</h1>
+                <p class="text-gray-500 mt-2">Log in to continue your journey.</p>
+            </div>
+            <form id="login-form" class="mt-8 space-y-6">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="login-email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="login-password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                </div>
+                <div>
+                    <button type="submit" class="w-full btn-primary">Login</button>
+                    <p id="login-error" class="text-center text-sm text-red-600 mt-2 hidden">Invalid email or password.</p>
+                </div>
+                 <p class="text-center text-sm text-gray-600">
+                    Don't have an account? <a href="#" id="go-to-signup" class="font-medium text-emerald-600 hover:text-emerald-500">Sign Up</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Signup Page -->
+    <div id="signup-page" class="hidden min-h-screen flex items-center justify-center p-4 bg-gray-100">
+        <div class="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-xl">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold text-gray-800">Create Your Account</h1>
+                <p class="text-gray-500 mt-2">Start your fitness journey today.</p>
+            </div>
+            <form id="signup-form" class="mt-8 space-y-6">
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="signup-email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="signup-password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                </div>
+                <div>
+                    <button type="submit" class="w-full btn-primary">Create Account</button>
+                    <p id="signup-error" class="text-center text-sm text-red-600 mt-2 hidden">An account with this email already exists.</p>
+                </div>
+                 <p class="text-center text-sm text-gray-600">
+                    Already have an account? <a href="#" id="go-to-login" class="font-medium text-emerald-600 hover:text-emerald-500">Login</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
     <!-- Onboarding / Initial Setup Page -->
-    <div id="setup-page" class="min-h-screen flex items-center justify-center p-4 bg-emerald-500">
+    <div id="setup-page" class="hidden min-h-screen flex items-center justify-center p-4 bg-emerald-500">
         <div class="max-w-2xl w-full mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-xl">
             <div class="text-center">
                 <svg class="mx-auto h-12 w-auto text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 100 15 7.5 7.5 0 000-15z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 1.5v2.25m5.379 1.353l-1.59 1.59m-10.758 0L3.03 4.103m15.94 9.878l-1.59-1.59M3.03 15.897l1.59 1.59m9.878 1.59V22.5m-5.379-1.353l1.59-1.59m10.758 0l1.59 1.59" />
                 </svg>
-                <h1 class="text-3xl font-bold text-gray-800 mt-4">Welcome to FitPlan!</h1>
+                <h1 class="text-3xl font-bold text-gray-800 mt-4">Welcome to Rollox Fitplan!</h1>
                 <p class="text-gray-500 mt-2">Let's set up your profile to personalize your experience.</p>
             </div>
 
@@ -182,11 +236,11 @@
         <div class="relative flex min-h-screen bg-gray-100">
             <div id="menu-overlay" class="md:hidden hidden fixed inset-0 bg-black bg-opacity-50 z-20"></div>
             <!-- Sidebar Navigation -->
-            <aside id="sidebar" class="absolute md:relative inset-y-0 left-0 z-30 w-72 bg-white shadow-lg flex-shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+            <aside id="sidebar" class="absolute md:relative inset-y-0 left-0 z-30 w-72 bg-white shadow-lg flex-shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col">
                 <div class="p-6 text-center border-b">
-                     <h1 class="text-2xl font-bold text-emerald-500">FitPlan</h1>
+                     <h1 class="text-2xl font-bold text-emerald-500">Rollox Fitplan</h1>
                 </div>
-                <nav id="main-nav" class="p-4 space-y-2">
+                <nav id="main-nav" class="p-4 space-y-2 flex-1">
                     <a data-page="dashboard-page" class="nav-item flex items-center space-x-3 active">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                         <span>Dashboard</span>
@@ -238,13 +292,21 @@
                         <span>Profile & Settings</span>
                     </a>
                 </nav>
+                <div class="p-4 border-t mt-auto">
+                    <button id="logout-button" class="w-full nav-item flex items-center space-x-3 text-red-500 hover:bg-red-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </aside>
 
             <!-- Main Content Area -->
             <div class="flex-1 flex flex-col">
                 <!-- Mobile Header -->
                 <header class="md:hidden bg-white shadow-md p-4 flex justify-between items-center w-full">
-                     <h1 class="text-xl font-bold text-emerald-500">FitPlan</h1>
+                     <h1 class="text-xl font-bold text-emerald-500">Rollox Fitplan</h1>
                      <button id="menu-toggle-btn" class="p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                      </button>
@@ -598,16 +660,7 @@
     // Self-invoking function to encapsulate the application logic
     const app = (() => {
         // State management object
-        let state = {
-            user: null,
-            progress: [],
-            meals: {},
-            expenses: [],
-            workoutPlan: null,
-            completedWorkouts: {},
-            pageHistory: [],
-            foodToAdd: null // Temporary state for the add food modal
-        };
+        let state = {};
 
         let progressChartInstance = null;
         let stopwatch = {
@@ -618,6 +671,8 @@
         };
 
         // --- DOM Element Selectors ---
+        const loginPage = document.getElementById('login-page');
+        const signupPage = document.getElementById('signup-page');
         const setupPage = document.getElementById('setup-page');
         const appContainer = document.getElementById('app-container');
         const mainNav = document.getElementById('main-nav');
@@ -634,20 +689,25 @@
         const sidebar = document.getElementById('sidebar');
         const menuOverlay = document.getElementById('menu-overlay');
 
-
         // --- Initialization ---
         function init() {
-            loadState();
-            if (state.user) {
+            // Check for a logged-in user first
+            if (loadState()) {
                 showApp();
             } else {
-                showSetup();
+                showAuthPage('login-page');
             }
             attachEventListeners();
         }
 
         // --- Event Listeners ---
         function attachEventListeners() {
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('signup-form').addEventListener('submit', handleSignup);
+            document.getElementById('go-to-signup').addEventListener('click', (e) => { e.preventDefault(); showAuthPage('signup-page'); });
+            document.getElementById('go-to-login').addEventListener('click', (e) => { e.preventDefault(); showAuthPage('login-page'); });
+            document.getElementById('logout-button').addEventListener('click', handleLogout);
+
             document.getElementById('setup-form').addEventListener('submit', handleSetupSubmit);
             mainNav.addEventListener('click', handleNavClick);
             document.getElementById('add-meal-form').addEventListener('submit', handleAddMeal);
@@ -656,7 +716,6 @@
             document.getElementById('progress-form').addEventListener('submit', handleProgressSubmit);
             backButton.addEventListener('click', handleBackClick);
             
-            // New Listeners for features
             mealLogContainer.addEventListener('click', handleDeleteMeal);
             workoutPlanContainer.addEventListener('click', handleWorkoutClick);
             document.getElementById('profile-form').addEventListener('submit', handleProfileUpdate);
@@ -746,32 +805,93 @@
         };
 
 
-        // --- State Management ---
+        // --- State Management & Authentication ---
         function loadState() {
-            const savedState = localStorage.getItem('fitPlanState');
-            if (savedState) {
-                const loadedState = JSON.parse(savedState);
-                state = {
-                    completedWorkouts: {},
-                    expenses: [],
-                    ...loadedState,
-                };
+            const usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
+            const currentUserEmail = localStorage.getItem('rolloxFitplanCurrentUser');
+            
+            if (currentUserEmail && usersDB[currentUserEmail]) {
+                state = usersDB[currentUserEmail];
+                return true; // User is logged in and data loaded
             }
+            return false; // No user logged in
         }
 
         function saveState() {
-            localStorage.setItem('fitPlanState', JSON.stringify(state));
+            const usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
+            const currentUserEmail = localStorage.getItem('rolloxFitplanCurrentUser');
+
+            if (currentUserEmail) {
+                usersDB[currentUserEmail] = state;
+                localStorage.setItem('rolloxFitplanUsersDB', JSON.stringify(usersDB));
+            }
+        }
+        
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
+            const loginError = document.getElementById('login-error');
+
+            if (usersDB[email] && usersDB[email].password === password) {
+                localStorage.setItem('rolloxFitplanCurrentUser', email);
+                loginError.classList.add('hidden');
+                init(); // Re-initialize the app to load the user's state
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            let usersDB = JSON.parse(localStorage.getItem('rolloxFitplanUsersDB')) || {};
+            const signupError = document.getElementById('signup-error');
+
+            if (usersDB[email]) {
+                signupError.classList.remove('hidden');
+            } else {
+                usersDB[email] = { password: password, user: null }; // Create a placeholder for the user profile
+                localStorage.setItem('rolloxFitplanUsersDB', JSON.stringify(usersDB));
+                localStorage.setItem('rolloxFitplanCurrentUser', email);
+                signupError.classList.add('hidden');
+                init(); // Re-initialize to load empty state for new user
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('rolloxFitplanCurrentUser');
+            state = {}; // Clear current state
+            window.location.reload(); // Reload the page to reset everything
         }
 
         // --- UI Switching ---
-        function showSetup() {
-            setupPage.style.display = 'flex';
-            appContainer.style.display = 'none';
+        function showAuthPage(pageId) {
+            loginPage.classList.add('hidden');
+            signupPage.classList.add('hidden');
+            setupPage.classList.add('hidden');
+            appContainer.classList.add('hidden');
+            
+            const pageToShow = document.getElementById(pageId);
+            pageToShow.classList.remove('hidden');
+            pageToShow.style.display = 'flex';
         }
 
         function showApp() {
+            loginPage.style.display = 'none';
+            signupPage.style.display = 'none';
             setupPage.style.display = 'none';
             appContainer.style.display = 'block';
+            appContainer.classList.remove('hidden');
+            
+            // If user has no profile data, force them to the setup page
+            if (!state.user) {
+                showAuthPage('setup-page');
+                return;
+            }
+
             updateDashboard();
             renderProgressHistory();
             renderDailyMeals();
@@ -851,7 +971,7 @@
                 saveState();
             }
         }
-
+        
         function toggleMobileMenu() {
             sidebar.classList.toggle('-translate-x-full');
             menuOverlay.classList.toggle('hidden');
@@ -1365,7 +1485,7 @@
                     push: [{ name: "Bench Press", sets: "4 sets of 8-12 reps" }, { name: "Overhead Press", sets: "3 sets of 10-15 reps" }, { name: "Tricep Pushdowns", sets: "3 sets of 12-15 reps" }],
                     pull: [{ name: "Lat Pulldowns", sets: "4 sets of 8-12 reps" }, { name: "Bent-Over Rows", sets: "4 sets of 8-12 reps" }, { name: "Bicep Curls", sets: "3 sets of 12-15 reps" }],
                     legs: [{ name: "Squats", sets: "4 sets of 8-12 reps" }, { name: "Leg Press", sets: "3 sets of 10-15 reps" }, { name: "Hamstring Curls", sets: "3 sets of 12-15 reps" }],
-                    fullBody: [{ name: "Goblet Squats", sets: "3 sets of 15 reps" }, { name: "Dumbbell Bench Press", sets: "3 sets of 15 reps" }, { name: "Seated Cable Row", sets: "3 sets of 15 reps" }, { name: "Plank", sets: "3 sets, 60s hold" }]
+                    fullBody: [{ name: "Squats", sets: "3 sets of 15 reps" }, { name: "Incline Dumbbell Press", sets: "3 sets of 15 reps" }, { name: "Lat Pulldowns", sets: "3 sets of 15 reps" }, { name: "Plank", sets: "3 sets, 60s hold" }]
                 },
                 home: {
                     push: [{ name: "Push-ups", sets: "4 sets to failure" }, { name: "Pike Push-ups", sets: "3 sets of 10-15 reps" }, { name: "Dips", sets: "3 sets to failure" }],
