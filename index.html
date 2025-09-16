@@ -757,7 +757,27 @@
         // --- Initialization ---
         function init() {
             try {
-                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCNKlhNAjr1vi9EA3kEDevFYOyGoos5bHI",
+  authDomain: "rollox-fitplan.firebaseapp.com",
+  projectId: "rollox-fitplan",
+  storageBucket: "rollox-fitplan.firebasestorage.app",
+  messagingSenderId: "1041468214089",
+  appId: "1:1041468214089:web:0456d96a53f52236be6898",
+  measurementId: "G-5P4EQEHEZF"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
                 const firebaseApp = window.firebase.initializeApp(firebaseConfig);
                 auth = window.firebase.getAuth(firebaseApp);
                 db = window.firebase.getFirestore(firebaseApp);
@@ -1874,4 +1894,5 @@
     </script>
 </body>
 </html>
+
 
