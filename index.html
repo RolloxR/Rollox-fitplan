@@ -9,18 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Firebase SDK -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-      import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-      import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-      window.firebase = {
-        initializeApp,
-        getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut,
-        getFirestore, doc, getDoc, setDoc
-      };
-    </script>
     
     <style>
         body {
@@ -133,8 +121,8 @@
 </head>
 <body class="antialiased text-slate-700">
 
-    <!-- Login Page -->
-    <div id="login-page" class="min-h-screen flex items-center justify-center p-4 bg-gray-100">
+    <!-- Login Page (Now Hidden) -->
+    <div id="login-page" class="hidden min-h-screen flex items-center justify-center p-4 bg-gray-100">
         <div class="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-2xl shadow-xl text-center">
             <h1 class="text-3xl font-bold text-gray-800">Welcome to Rollox Fitplan</h1>
             <p class="text-gray-500 mt-2">Sign in to begin your fitness journey.</p>
@@ -145,7 +133,7 @@
                     </svg>
                     Sign In with Google
                 </button>
-                 <p id="login-error" class="text-center text-sm text-red-600 mt-4 hidden">Could not sign in with Google. Please try again.</p>
+                 <p id="login-error" class="text-center text-sm text-red-600 mt-4 hidden">Could not sign in. Please try again.</p>
             </div>
         </div>
     </div>
@@ -290,14 +278,7 @@
                         <span>Profile & Settings</span>
                     </a>
                 </nav>
-                <div class="p-4 border-t mt-auto">
-                    <button id="logout-button" class="w-full nav-item flex items-center space-x-3 text-red-500 hover:bg-red-50">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                           <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Logout</span>
-                    </button>
-                </div>
+                <!-- Removed Logout Button for single-user mode -->
             </aside>
 
             <!-- Main Content Area -->
@@ -720,1179 +701,1088 @@
 
 
     <script>
-    // Self-invoking function to encapsulate the application logic
-    const app = (() => {
-        // --- App State ---
-        let state = {};
-        let editingRoutineId = null;
-        let progressChartInstance = null;
-        let stopwatch = { startTime: 0, elapsedTime: 0, timerInterval: null, running: false };
+        const app = (() => {
+            // --- App State ---
+            let state = {};
+            let editingRoutineId = null;
+            let progressChartInstance = null;
+            let stopwatch = { startTime: 0, elapsedTime: 0, timerInterval: null, running: false };
 
-        // --- Firebase State ---
-        let auth, db, userId;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            // --- DOM Element Selectors ---
+            const loginPage = document.getElementById('login-page');
+            const setupPage = document.getElementById('setup-page');
+            const appContainer = document.getElementById('app-container');
+            const mainNav = document.getElementById('main-nav');
+            const pages = document.querySelectorAll('.page-content');
+            const backButton = document.getElementById('back-button');
+            const mealLogContainer = document.getElementById('meal-log-container');
+            const workoutPlanContainer = document.getElementById('workout-plan-container');
+            const expenseHistoryContainer = document.getElementById('expense-history');
+            const exerciseModal = document.getElementById('exercise-modal');
+            const libraryContainer = document.getElementById('library-container');
+            const foodResultsContainer = document.getElementById('food-results-container');
+            const addFoodModal = document.getElementById('add-food-modal');
+            const menuToggleBtn = document.getElementById('menu-toggle-btn');
+            const sidebar = document.getElementById('sidebar');
+            const menuOverlay = document.getElementById('menu-overlay');
+            const planSelector = document.getElementById('plan-selector');
+            const customRoutinesContainer = document.getElementById('custom-routines-container');
+            const builderModal = document.getElementById('builder-modal');
+            const modalBackdrop = document.getElementById('modal-backdrop');
 
-        // --- DOM Element Selectors ---
-        const loginPage = document.getElementById('login-page');
-        const setupPage = document.getElementById('setup-page');
-        const appContainer = document.getElementById('app-container');
-        const mainNav = document.getElementById('main-nav');
-        const pages = document.querySelectorAll('.page-content');
-        const backButton = document.getElementById('back-button');
-        const mealLogContainer = document.getElementById('meal-log-container');
-        const workoutPlanContainer = document.getElementById('workout-plan-container');
-        const expenseHistoryContainer = document.getElementById('expense-history');
-        const exerciseModal = document.getElementById('exercise-modal');
-        const libraryContainer = document.getElementById('library-container');
-        const foodResultsContainer = document.getElementById('food-results-container');
-        const addFoodModal = document.getElementById('add-food-modal');
-        const menuToggleBtn = document.getElementById('menu-toggle-btn');
-        const sidebar = document.getElementById('sidebar');
-        const menuOverlay = document.getElementById('menu-overlay');
-        const planSelector = document.getElementById('plan-selector');
-        const customRoutinesContainer = document.getElementById('custom-routines-container');
-        const builderModal = document.getElementById('builder-modal');
-        const modalBackdrop = document.getElementById('modal-backdrop');
-
-        // --- Initialization ---
-        function init() {
-            try {
-                // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCNKlhNAjr1vi9EA3kEDevFYOyGoos5bHI",
-  authDomain: "rollox-fitplan.firebaseapp.com",
-  projectId: "rollox-fitplan",
-  storageBucket: "rollox-fitplan.firebasestorage.app",
-  messagingSenderId: "1041468214089",
-  appId: "1:1041468214089:web:0456d96a53f52236be6898",
-  measurementId: "G-5P4EQEHEZF"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-                const firebaseApp = window.firebase.initializeApp(firebaseConfig);
-                auth = window.firebase.getAuth(firebaseApp);
-                db = window.firebase.getFirestore(firebaseApp);
-                attachAuthListener();
+            // --- Initialization ---
+            function init() {
+                if (loadState()) {
+                    showApp();
+                } else {
+                    showAuthPage('setup-page');
+                }
                 attachEventListeners();
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                // Fallback for environments without Firebase config
-                showAuthPage('login-page');
-                document.getElementById('google-signin-btn').disabled = true;
-                document.getElementById('google-signin-btn').textContent = 'Setup Incomplete';
             }
-        }
-        
-        function attachAuthListener() {
-            window.firebase.onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    userId = user.uid;
-                    await loadState(); // Load data from Firestore
-                    if (state && state.user) {
-                        showApp();
-                    } else {
-                        showAuthPage('setup-page');
-                    }
-                } else {
-                    userId = null;
-                    state = {};
-                    showAuthPage('login-page');
-                }
-            });
-        }
 
+            // --- Event Listeners ---
+            function attachEventListeners() {
+                document.getElementById('setup-form').addEventListener('submit', handleSetupSubmit);
+                mainNav.addEventListener('click', handleNavClick);
+                document.getElementById('add-meal-form').addEventListener('submit', handleAddMeal);
+                document.getElementById('stopwatch-start-pause').addEventListener('click', handleStopwatchStartPause);
+                document.getElementById('stopwatch-reset').addEventListener('click', handleStopwatchReset);
+                document.getElementById('progress-form').addEventListener('submit', handleProgressSubmit);
+                backButton.addEventListener('click', handleBackClick);
+                
+                mealLogContainer.addEventListener('click', handleDeleteMeal);
+                workoutPlanContainer.addEventListener('click', handleWorkoutClick);
+                document.getElementById('profile-form').addEventListener('submit', handleProfileUpdate);
+                
+                libraryContainer.addEventListener('click', handleWorkoutClick);
+                document.getElementById('food-search').addEventListener('input', renderFoodResults);
+                foodResultsContainer.addEventListener('click', handleFoodResultClick);
+                
+                document.getElementById('add-expense-form').addEventListener('submit', handleAddExpense);
+                expenseHistoryContainer.addEventListener('click', handleDeleteExpense);
 
-        // --- Event Listeners ---
-        function attachEventListeners() {
-            document.getElementById('google-signin-btn').addEventListener('click', handleGoogleSignIn);
-            document.getElementById('logout-button').addEventListener('click', handleLogout);
+                // Mobile menu listeners
+                menuToggleBtn.addEventListener('click', toggleMobileMenu);
+                menuOverlay.addEventListener('click', toggleMobileMenu);
 
-            document.getElementById('setup-form').addEventListener('submit', handleSetupSubmit);
-            mainNav.addEventListener('click', handleNavClick);
-            document.getElementById('add-meal-form').addEventListener('submit', handleAddMeal);
-            document.getElementById('stopwatch-start-pause').addEventListener('click', handleStopwatchStartPause);
-            document.getElementById('stopwatch-reset').addEventListener('click', handleStopwatchReset);
-            document.getElementById('progress-form').addEventListener('submit', handleProgressSubmit);
-            backButton.addEventListener('click', handleBackClick);
+                // New Feature Listeners
+                planSelector.addEventListener('change', handlePlanSelection);
+                document.getElementById('create-routine-btn').addEventListener('click', () => openBuilderModal());
+                customRoutinesContainer.addEventListener('click', handleCustomRoutineClick);
+                
+                // Modal listeners
+                modalBackdrop.addEventListener('click', closeAllModals);
+                document.getElementById('modal-close-btn').addEventListener('click', closeExerciseModal);
+                document.getElementById('add-food-modal-close-btn').addEventListener('click', closeAddFoodModal);
+                document.getElementById('add-food-modal-cancel-btn').addEventListener('click', closeAddFoodModal);
+                document.getElementById('add-food-modal-form').addEventListener('submit', handleAddFoodFromModal);
+                document.getElementById('library-search').addEventListener('input', renderExerciseLibrary);
+                
+                // Builder modal listeners
+                document.getElementById('builder-modal-close-btn').addEventListener('click', closeBuilderModal);
+                document.getElementById('builder-modal-cancel-btn').addEventListener('click', closeBuilderModal);
+                document.getElementById('builder-modal-save-btn').addEventListener('click', handleSaveRoutine);
+                document.getElementById('builder-days-container').addEventListener('click', handleBuilderDayClick);
+            }
             
-            mealLogContainer.addEventListener('click', handleDeleteMeal);
-            workoutPlanContainer.addEventListener('click', handleWorkoutClick);
-            document.getElementById('profile-form').addEventListener('submit', handleProfileUpdate);
-            
-            libraryContainer.addEventListener('click', handleWorkoutClick);
-            document.getElementById('food-search').addEventListener('input', renderFoodResults);
-            foodResultsContainer.addEventListener('click', handleFoodResultClick);
-            
-            document.getElementById('add-expense-form').addEventListener('submit', handleAddExpense);
-            expenseHistoryContainer.addEventListener('click', handleDeleteExpense);
+            // --- Exercise Database ---
+            const exerciseDatabase = {
+                'Bench Press': { description: "Lie on a flat bench, holding a barbell with a grip slightly wider than shoulder-width. Lower the bar to your mid-chest, then press it back up to the starting position, fully extending your arms.", targetMuscles: "Chest, Shoulders, Triceps", tips: ["Keep your back flat on the bench.", "Don't bounce the bar off your chest.", "Control the weight on the way down."] },
+                'Incline Dumbbell Press': { description: "Sit on an incline bench holding a dumbbell in each hand. Lie back and press the dumbbells up above your chest. Lower them slowly and with control.", targetMuscles: "Upper Chest, Shoulders", tips: ["Set the bench to a 30-45 degree angle.", "Don't let the dumbbells touch at the top."] },
+                'Cable Flyes': { description: "Stand in the center of a cable machine with pulleys set high. Grab a handle in each hand. With a slight bend in your elbows, bring your hands together in front of your chest.", targetMuscles: "Chest", tips: ["Focus on squeezing the chest muscles.", "Don't use excessively heavy weight."] },
+                'Overhead Press': { description: "Stand with the barbell on your front shoulders, hands slightly wider than shoulder-width. Press the bar overhead until your arms are fully extended. Lower it back down with control.", targetMuscles: "Shoulders, Triceps", tips: ["Keep your core tight to avoid arching your back.", "Don't use your legs to push the weight up."] },
+                'Lateral Raises': { description: "Stand holding a dumbbell in each hand at your sides. With a slight bend in your elbows, raise your arms out to the sides until they are parallel with the floor.", targetMuscles: "Shoulders", tips: ["Avoid using momentum to swing the weights up.", "Lead with your elbows."] },
+                'Tricep Pushdowns': { description: "Attach a straight or angled bar to a high pulley machine. Grasp the bar with an overhand grip, and with your elbows tucked at your sides, push the bar down until your arms are fully extended.", targetMuscles: "Triceps", tips: ["Only your forearms should move.", "Keep your elbows close to your body."] },
+                'Pull-ups': { description: "Grasp a pull-up bar with an overhand grip, slightly wider than your shoulders. Hang with your arms fully extended. Pull your body up until your chin is over the bar. Lower yourself back down with control.", targetMuscles: "Back, Biceps", tips: ["Avoid swinging.", "Focus on squeezing your back muscles."] },
+                'Lat Pulldowns': { description: "Sit at a lat pulldown machine and secure your knees. Grasp the bar with a wide grip. Pull the bar down to your upper chest, squeezing your back muscles. Slowly return to the start.", targetMuscles: "Back, Biceps", tips: ["Keep your torso stationary.", "Lead with your elbows."] },
+                'Bent-Over Rows': { description: "Hold a barbell with an overhand grip, hands shoulder-width apart. Hinge at your hips until your torso is nearly parallel to the floor. Pull the bar up towards your lower chest. Lower with control.", targetMuscles: "Back, Biceps", tips: ["Keep your back straight.", "Squeeze your shoulder blades together at the top."] },
+                'Deadlifts': { description: "Stand with your mid-foot under a barbell. Hinge at the hips and bend your knees to grip the bar. Keep your back straight, lift your chest, and drive through your heels to stand up, pulling the weight with you.", targetMuscles: "Full Body, Hamstrings, Glutes, Back", tips: ["Maintain a neutral spine throughout the lift.", "Start with a light weight to master the form."] },
+                'Bicep Curls': { description: "Stand or sit holding a dumbbell in each hand with an underhand grip. Curl the weights up towards your shoulders, keeping your elbows stationary. Squeeze your biceps at the top, then lower slowly.", targetMuscles: "Biceps", tips: ["Don't swing your body to lift the weight.", "Control the negative (lowering) phase."] },
+                'Squats': { description: "Stand with your feet shoulder-width apart, with a barbell supported on your upper back. Lower your hips as if sitting in a chair, keeping your chest up and back straight. Go down until your thighs are at least parallel to the floor, then drive back up.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Keep your knees in line with your feet.", "Drive through your heels."] },
+                'Leg Press': { description: "Sit on a leg press machine with your feet shoulder-width apart on the platform. Push the platform away by extending your knees. Slowly return to the starting position without locking your knees at the top.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Don't let your lower back round off the pad.", "Control the movement throughout."] },
+                'Romanian Deadlifts': { description: "Hold a barbell or dumbbells in front of your thighs. Hinge at your hips, keeping your legs almost straight but not locked. Lower the weight while keeping your back straight, feeling a stretch in your hamstrings. Return to the starting position by driving your hips forward.", targetMuscles: "Hamstrings, Glutes", tips: ["Keep the weight close to your body.", "Focus on the hip hinge movement."] },
+                'Leg Extensions': { description: "Sit on a leg extension machine with your legs under the pad. Extend your legs to lift the weight until they are straight. Lower the weight back down with control.", targetMuscles: "Quads", tips: ["Don't use momentum.", "Focus on squeezing your quads at the top."] },
+                'Hamstring Curls': { description: "Lie face down on a hamstring curl machine with the pad resting on your lower calves. Curl your legs up towards your glutes. Squeeze your hamstrings at the top, then lower slowly.", targetMuscles: "Hamstrings", tips: ["Avoid using your lower back.", "Focus on a slow, controlled movement."] },
+                'Calf Raises': { description: "Stand on a raised surface with your heels hanging off. Push through the balls of your feet to raise your heels as high as possible. Lower them slowly back to the starting position.", targetMuscles: "Calves", tips: ["Hold onto something for balance.", "Pause at the top for a moment."] },
+                'Plank': { description: "Hold a push-up position, but with your weight resting on your forearms instead of your hands. Keep your body in a straight line from your head to your heels. Hold this position for the designated time.", targetMuscles: "Core, Abs", tips: ["Don't let your hips sag.", "Keep your neck in line with your spine."] },
+                'Push-ups': { description: "Start in a high plank position with your hands under your shoulders. Lower your body until your chest nearly touches the floor. Push back up to the starting position, keeping your body in a straight line.", targetMuscles: "Chest, Shoulders, Triceps", tips: ["Keep your core engaged.", "Don't let your hips sag."] },
+                'Pike Push-ups': { description: "Get into a downward dog yoga position. Your body should form an inverted V. Bend your elbows to lower the top of your head towards the floor. Press back up.", targetMuscles: "Shoulders, Triceps", tips: ["The more vertical your torso, the harder it is.", "Focus on pressing through your shoulders."] },
+                'Dips': { description: "Use two parallel bars or the edges of two sturdy chairs. Hold your body up with straight arms. Lower yourself until your elbows are at a 90-degree angle, then press back up.", targetMuscles: "Triceps, Chest, Shoulders", tips: ["Keep your torso upright to target triceps more.", "Lean forward to engage more chest."] },
+                'Bodyweight Rows': { description: "Lie under a sturdy table or a low bar. Grab the edge with an overhand grip. Pull your chest up to the table or bar, keeping your body straight. Lower yourself back down.", targetMuscles: "Back, Biceps", tips: ["The more parallel your body is to the floor, the harder it is.", "Squeeze your shoulder blades."] },
+                'Supermans': { description: "Lie face down on the floor with your arms and legs extended. Simultaneously lift your arms, chest, and legs off the floor, holding the contraction at the top. Lower back down.", targetMuscles: "Lower Back", tips: ["Keep your neck in a neutral position.", "This is a great exercise for posture."] },
+                'Bodyweight Squats': { description: "Stand with your feet shoulder-width apart. Lower your hips as if sitting in a chair, keeping your chest up and back straight. Go down until your thighs are parallel to the floor, then drive back up.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Focus on good form before adding speed or reps.", "Keep weight in your heels."] },
+                'Lunges': { description: "Step forward with one leg and lower your hips until both knees are bent at a 9-degree angle. Your front knee should be directly above your ankle, and your back knee should hover just above the ground. Push off your front foot to return to the start.", targetMuscles: "Quads, Glutes, Hamstrings", tips: ["Keep your upper body straight.", "Take a controlled step."] },
+                'Glute Bridges': { description: "Lie on your back with your knees bent and feet flat on the floor, hip-width apart. Lift your hips off the floor until your body forms a straight line from your shoulders to your knees. Squeeze your glutes at the top. Lower back down.", targetMuscles: "Glutes, Hamstrings", tips: ["Don't overextend your back at the top.", "Drive through your heels."] },
+                'Burpees': { description: "From a standing position, squat down, place your hands on the floor, and kick your feet back into a plank position. Perform a push-up, then jump your feet back towards your hands. Jump up explosively with your hands overhead.", targetMuscles: "Full Body", tips: ["Pace yourself.", "Can be modified by removing the push-up or jump."] },
+                'Jumping Jacks': { description: "Stand with your feet together and your arms at your sides. Simultaneously jump your feet out to the sides while raising your arms overhead. Jump back to the starting position.", targetMuscles: "Full Body, Cardio", tips: ["Stay light on your feet.", "A great warm-up exercise."] },
+                'Mountain Climbers': { description: "Start in a plank position. Drive one knee towards your chest, then quickly switch and drive the other knee in, as if you're running in place. Keep your core tight and back flat.", targetMuscles: "Core, Cardio", tips: ["Don't let your hips bounce up and down.", "Keep a steady pace."] },
+                'Squat Jumps': { description: "Perform a regular bodyweight squat, but as you come up, explode into a jump. Land softly, immediately lowering into your next squat.", targetMuscles: "Quads, Glutes, Power", tips: ["Focus on a soft landing to protect your knees.", "Use your arms for momentum."] }
+            };
 
-            // Mobile menu listeners
-            menuToggleBtn.addEventListener('click', toggleMobileMenu);
-            menuOverlay.addEventListener('click', toggleMobileMenu);
-
-            // New Feature Listeners
-            planSelector.addEventListener('change', handlePlanSelection);
-            document.getElementById('create-routine-btn').addEventListener('click', () => openBuilderModal());
-            customRoutinesContainer.addEventListener('click', handleCustomRoutineClick);
-            
-            // Modal listeners
-            modalBackdrop.addEventListener('click', closeAllModals);
-            document.getElementById('modal-close-btn').addEventListener('click', closeExerciseModal);
-            document.getElementById('add-food-modal-close-btn').addEventListener('click', closeAddFoodModal);
-            document.getElementById('add-food-modal-cancel-btn').addEventListener('click', closeAddFoodModal);
-            document.getElementById('add-food-modal-form').addEventListener('submit', handleAddFoodFromModal);
-            document.getElementById('library-search').addEventListener('input', renderExerciseLibrary);
-            
-            // Builder modal listeners
-            document.getElementById('builder-modal-close-btn').addEventListener('click', closeBuilderModal);
-            document.getElementById('builder-modal-cancel-btn').addEventListener('click', closeBuilderModal);
-            document.getElementById('builder-modal-save-btn').addEventListener('click', handleSaveRoutine);
-            document.getElementById('builder-days-container').addEventListener('click', handleBuilderDayClick);
-        }
-        
-        // --- Exercise Database ---
-        const exerciseDatabase = {
-            'Bench Press': { description: "Lie on a flat bench, holding a barbell with a grip slightly wider than shoulder-width. Lower the bar to your mid-chest, then press it back up to the starting position, fully extending your arms.", targetMuscles: "Chest, Shoulders, Triceps", tips: ["Keep your back flat on the bench.", "Don't bounce the bar off your chest.", "Control the weight on the way down."] },
-            'Incline Dumbbell Press': { description: "Sit on an incline bench holding a dumbbell in each hand. Lie back and press the dumbbells up above your chest. Lower them slowly and with control.", targetMuscles: "Upper Chest, Shoulders", tips: ["Set the bench to a 30-45 degree angle.", "Don't let the dumbbells touch at the top."] },
-            'Cable Flyes': { description: "Stand in the center of a cable machine with pulleys set high. Grab a handle in each hand. With a slight bend in your elbows, bring your hands together in front of your chest.", targetMuscles: "Chest", tips: ["Focus on squeezing the chest muscles.", "Don't use excessively heavy weight."] },
-            'Overhead Press': { description: "Stand with the barbell on your front shoulders, hands slightly wider than shoulder-width. Press the bar overhead until your arms are fully extended. Lower it back down with control.", targetMuscles: "Shoulders, Triceps", tips: ["Keep your core tight to avoid arching your back.", "Don't use your legs to push the weight up."] },
-            'Lateral Raises': { description: "Stand holding a dumbbell in each hand at your sides. With a slight bend in your elbows, raise your arms out to the sides until they are parallel with the floor.", targetMuscles: "Shoulders", tips: ["Avoid using momentum to swing the weights up.", "Lead with your elbows."] },
-            'Tricep Pushdowns': { description: "Attach a straight or angled bar to a high pulley machine. Grasp the bar with an overhand grip, and with your elbows tucked at your sides, push the bar down until your arms are fully extended.", targetMuscles: "Triceps", tips: ["Only your forearms should move.", "Keep your elbows close to your body."] },
-            'Pull-ups': { description: "Grasp a pull-up bar with an overhand grip, slightly wider than your shoulders. Hang with your arms fully extended. Pull your body up until your chin is over the bar. Lower yourself back down with control.", targetMuscles: "Back, Biceps", tips: ["Avoid swinging.", "Focus on squeezing your back muscles."] },
-            'Lat Pulldowns': { description: "Sit at a lat pulldown machine and secure your knees. Grasp the bar with a wide grip. Pull the bar down to your upper chest, squeezing your back muscles. Slowly return to the start.", targetMuscles: "Back, Biceps", tips: ["Keep your torso stationary.", "Lead with your elbows."] },
-            'Bent-Over Rows': { description: "Hold a barbell with an overhand grip, hands shoulder-width apart. Hinge at your hips until your torso is nearly parallel to the floor. Pull the bar up towards your lower chest. Lower with control.", targetMuscles: "Back, Biceps", tips: ["Keep your back straight.", "Squeeze your shoulder blades together at the top."] },
-            'Deadlifts': { description: "Stand with your mid-foot under a barbell. Hinge at the hips and bend your knees to grip the bar. Keep your back straight, lift your chest, and drive through your heels to stand up, pulling the weight with you.", targetMuscles: "Full Body, Hamstrings, Glutes, Back", tips: ["Maintain a neutral spine throughout the lift.", "Start with a light weight to master the form."] },
-            'Bicep Curls': { description: "Stand or sit holding a dumbbell in each hand with an underhand grip. Curl the weights up towards your shoulders, keeping your elbows stationary. Squeeze your biceps at the top, then lower slowly.", targetMuscles: "Biceps", tips: ["Don't swing your body to lift the weight.", "Control the negative (lowering) phase."] },
-            'Squats': { description: "Stand with your feet shoulder-width apart, with a barbell supported on your upper back. Lower your hips as if sitting in a chair, keeping your chest up and back straight. Go down until your thighs are at least parallel to the floor, then drive back up.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Keep your knees in line with your feet.", "Drive through your heels."] },
-            'Leg Press': { description: "Sit on a leg press machine with your feet shoulder-width apart on the platform. Push the platform away by extending your knees. Slowly return to the starting position without locking your knees at the top.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Don't let your lower back round off the pad.", "Control the movement throughout."] },
-            'Romanian Deadlifts': { description: "Hold a barbell or dumbbells in front of your thighs. Hinge at your hips, keeping your legs almost straight but not locked. Lower the weight while keeping your back straight, feeling a stretch in your hamstrings. Return to the starting position by driving your hips forward.", targetMuscles: "Hamstrings, Glutes", tips: ["Keep the weight close to your body.", "Focus on the hip hinge movement."] },
-            'Leg Extensions': { description: "Sit on a leg extension machine with your legs under the pad. Extend your legs to lift the weight until they are straight. Lower the weight back down with control.", targetMuscles: "Quads", tips: ["Don't use momentum.", "Focus on squeezing your quads at the top."] },
-            'Hamstring Curls': { description: "Lie face down on a hamstring curl machine with the pad resting on your lower calves. Curl your legs up towards your glutes. Squeeze your hamstrings at the top, then lower slowly.", targetMuscles: "Hamstrings", tips: ["Avoid using your lower back.", "Focus on a slow, controlled movement."] },
-            'Calf Raises': { description: "Stand on a raised surface with your heels hanging off. Push through the balls of your feet to raise your heels as high as possible. Lower them slowly back to the starting position.", targetMuscles: "Calves", tips: ["Hold onto something for balance.", "Pause at the top for a moment."] },
-            'Plank': { description: "Hold a push-up position, but with your weight resting on your forearms instead of your hands. Keep your body in a straight line from your head to your heels. Hold this position for the designated time.", targetMuscles: "Core, Abs", tips: ["Don't let your hips sag.", "Keep your neck in line with your spine."] },
-            'Push-ups': { description: "Start in a high plank position with your hands under your shoulders. Lower your body until your chest nearly touches the floor. Push back up to the starting position, keeping your body in a straight line.", targetMuscles: "Chest, Shoulders, Triceps", tips: ["Keep your core engaged.", "Don't let your hips sag."] },
-            'Pike Push-ups': { description: "Get into a downward dog yoga position. Your body should form an inverted V. Bend your elbows to lower the top of your head towards the floor. Press back up.", targetMuscles: "Shoulders, Triceps", tips: ["The more vertical your torso, the harder it is.", "Focus on pressing through your shoulders."] },
-            'Dips': { description: "Use two parallel bars or the edges of two sturdy chairs. Hold your body up with straight arms. Lower yourself until your elbows are at a 90-degree angle, then press back up.", targetMuscles: "Triceps, Chest, Shoulders", tips: ["Keep your torso upright to target triceps more.", "Lean forward to engage more chest."] },
-            'Bodyweight Rows': { description: "Lie under a sturdy table or a low bar. Grab the edge with an overhand grip. Pull your chest up to the table or bar, keeping your body straight. Lower yourself back down.", targetMuscles: "Back, Biceps", tips: ["The more parallel your body is to the floor, the harder it is.", "Squeeze your shoulder blades."] },
-            'Supermans': { description: "Lie face down on the floor with your arms and legs extended. Simultaneously lift your arms, chest, and legs off the floor, holding the contraction at the top. Lower back down.", targetMuscles: "Lower Back", tips: ["Keep your neck in a neutral position.", "This is a great exercise for posture."] },
-            'Bodyweight Squats': { description: "Stand with your feet shoulder-width apart. Lower your hips as if sitting in a chair, keeping your chest up and back straight. Go down until your thighs are parallel to the floor, then drive back up.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Focus on good form before adding speed or reps.", "Keep weight in your heels."] },
-            'Lunges': { description: "Step forward with one leg and lower your hips until both knees are bent at a 9-degree angle. Your front knee should be directly above your ankle, and your back knee should hover just above the ground. Push off your front foot to return to the start.", targetMuscles: "Quads, Glutes, Hamstrings", tips: ["Keep your upper body straight.", "Take a controlled step."] },
-            'Glute Bridges': { description: "Lie on your back with your knees bent and feet flat on the floor, hip-width apart. Lift your hips off the floor until your body forms a straight line from your shoulders to your knees. Squeeze your glutes at the top. Lower back down.", targetMuscles: "Glutes, Hamstrings", tips: ["Don't overextend your back at the top.", "Drive through your heels."] },
-            'Burpees': { description: "From a standing position, squat down, place your hands on the floor, and kick your feet back into a plank position. Perform a push-up, then jump your feet back towards your hands. Jump up explosively with your hands overhead.", targetMuscles: "Full Body", tips: ["Pace yourself.", "Can be modified by removing the push-up or jump."] },
-            'Jumping Jacks': { description: "Stand with your feet together and your arms at your sides. Simultaneously jump your feet out to the sides while raising your arms overhead. Jump back to the starting position.", targetMuscles: "Full Body, Cardio", tips: ["Stay light on your feet.", "A great warm-up exercise."] },
-            'Mountain Climbers': { description: "Start in a plank position. Drive one knee towards your chest, then quickly switch and drive the other knee in, as if you're running in place. Keep your core tight and back flat.", targetMuscles: "Core, Cardio", tips: ["Don't let your hips bounce up and down.", "Keep a steady pace."] },
-            'Squat Jumps': { description: "Perform a regular bodyweight squat, but as you come up, explode into a jump. Land softly, immediately lowering into your next squat.", targetMuscles: "Quads, Glutes, Power", tips: ["Focus on a soft landing to protect your knees.", "Use your arms for momentum."] }
-        };
-
-        // --- Food Database ---
-         const foodDatabase = {
-            'Apple (medium)': { calories: 95, protein: 1, carbs: 25 },
-            'Avocado (half)': { calories: 160, protein: 2, carbs: 9 },
-            'Banana (medium)': { calories: 105, protein: 1, carbs: 27 },
-            'Blueberries (1 cup)': { calories: 85, protein: 1, carbs: 21 },
-            'Orange (medium)': { calories: 62, protein: 1, carbs: 15 },
-            'Strawberries (1 cup)': { calories: 49, protein: 1, carbs: 12 },
-            'Chicken Breast (100g grilled)': { calories: 165, protein: 31, carbs: 0 },
-            'Salmon (100g baked)': { calories: 206, protein: 22, carbs: 0 },
-            'Beef Steak (100g lean, grilled)': { calories: 250, protein: 26, carbs: 0 },
-            'Tuna (canned in water, 100g)': { calories: 116, protein: 26, carbs: 0 },
-            'Tofu (100g firm)': { calories: 76, protein: 8, carbs: 2 },
-            'Lentils (1 cup cooked)': { calories: 230, protein: 18, carbs: 40 },
-            'Chickpeas (1 cup cooked)': { calories: 269, protein: 15, carbs: 45 },
-            'Brown Rice (1 cup cooked)': { calories: 215, protein: 5, carbs: 45 },
-            'White Rice (1 cup cooked)': { calories: 205, protein: 4, carbs: 45 },
-            'Quinoa (1 cup cooked)': { calories: 222, protein: 8, carbs: 39 },
-            'Pasta (100g dry weight)': { calories: 371, protein: 13, carbs: 74 },
-            'Oats (1/2 cup dry)': { calories: 150, protein: 5, carbs: 27 },
-            'Egg (1 large)': { calories: 78, protein: 6, carbs: 1 },
-            'Almonds (28g)': { calories: 164, protein: 6, carbs: 6 },
-            'Peanut Butter (2 tbsp)': { calories: 190, protein: 8, carbs: 7 },
-            'Broccoli (1 cup chopped)': { calories: 55, protein: 4, carbs: 11 },
-            'Spinach (1 cup raw)': { calories: 7, protein: 1, carbs: 1 },
-            'Carrots (1 cup chopped)': { calories: 52, protein: 1, carbs: 12 },
-            'Bell Pepper (1 medium)': { calories: 24, protein: 1, carbs: 6 },
-            'Sweet Potato (medium baked)': { calories: 103, protein: 2, carbs: 24 },
-            'Greek Yogurt (100g plain, non-fat)': { calories: 59, protein: 10, carbs: 4 },
-            'Milk (1 cup, whole)': { calories: 149, protein: 8, carbs: 12 },
-            'Cheddar Cheese (28g)': { calories: 114, protein: 7, carbs: 1 },
-            'Olive Oil (1 tbsp)': { calories: 119, protein: 0, carbs: 0 },
-            'Whole Wheat Bread (1 slice)': { calories: 81, protein: 4, carbs: 14 }
-        };
+            // --- Food Database ---
+             const foodDatabase = {
+                'Apple (medium)': { calories: 95, protein: 1, carbs: 25 },
+                'Avocado (half)': { calories: 160, protein: 2, carbs: 9 },
+                'Banana (medium)': { calories: 105, protein: 1, carbs: 27 },
+                'Blueberries (1 cup)': { calories: 85, protein: 1, carbs: 21 },
+                'Orange (medium)': { calories: 62, protein: 1, carbs: 15 },
+                'Strawberries (1 cup)': { calories: 49, protein: 1, carbs: 12 },
+                'Chicken Breast (100g grilled)': { calories: 165, protein: 31, carbs: 0 },
+                'Salmon (100g baked)': { calories: 206, protein: 22, carbs: 0 },
+                'Beef Steak (100g lean, grilled)': { calories: 250, protein: 26, carbs: 0 },
+                'Tuna (canned in water, 100g)': { calories: 116, protein: 26, carbs: 0 },
+                'Tofu (100g firm)': { calories: 76, protein: 8, carbs: 2 },
+                'Lentils (1 cup cooked)': { calories: 230, protein: 18, carbs: 40 },
+                'Chickpeas (1 cup cooked)': { calories: 269, protein: 15, carbs: 45 },
+                'Brown Rice (1 cup cooked)': { calories: 215, protein: 5, carbs: 45 },
+                'White Rice (1 cup cooked)': { calories: 205, protein: 4, carbs: 45 },
+                'Quinoa (1 cup cooked)': { calories: 222, protein: 8, carbs: 39 },
+                'Pasta (100g dry weight)': { calories: 371, protein: 13, carbs: 74 },
+                'Oats (1/2 cup dry)': { calories: 150, protein: 5, carbs: 27 },
+                'Egg (1 large)': { calories: 78, protein: 6, carbs: 1 },
+                'Almonds (28g)': { calories: 164, protein: 6, carbs: 6 },
+                'Peanut Butter (2 tbsp)': { calories: 190, protein: 8, carbs: 7 },
+                'Broccoli (1 cup chopped)': { calories: 55, protein: 4, carbs: 11 },
+                'Spinach (1 cup raw)': { calories: 7, protein: 1, carbs: 1 },
+                'Carrots (1 cup chopped)': { calories: 52, protein: 1, carbs: 12 },
+                'Bell Pepper (1 medium)': { calories: 24, protein: 1, carbs: 6 },
+                'Sweet Potato (medium baked)': { calories: 103, protein: 2, carbs: 24 },
+                'Greek Yogurt (100g plain, non-fat)': { calories: 59, protein: 10, carbs: 4 },
+                'Milk (1 cup, whole)': { calories: 149, protein: 8, carbs: 12 },
+                'Cheddar Cheese (28g)': { calories: 114, protein: 7, carbs: 1 },
+                'Olive Oil (1 tbsp)': { calories: 119, protein: 0, carbs: 0 },
+                'Whole Wheat Bread (1 slice)': { calories: 81, protein: 4, carbs: 14 }
+            };
 
 
-        // --- State Management & Authentication ---
-        async function loadState() {
-            if (!userId) return false;
-            const docRef = window.firebase.doc(db, "artifacts", appId, "users", userId, "profile", "data");
-            try {
-                const docSnap = await window.firebase.getDoc(docRef);
-                if (docSnap.exists()) {
-                    state = docSnap.data();
+            // --- State Management & Authentication ---
+            function loadState() {
+                const savedState = localStorage.getItem('rolloxFitplanState');
+                if (savedState) {
+                    state = JSON.parse(savedState);
                     return true;
-                } else {
-                    state = {}; // New user, empty state
-                    return false;
                 }
-            } catch (error) {
-                console.error("Error loading state from Firestore:", error);
                 return false;
             }
-        }
 
-        async function saveState() {
-            if (!userId) return;
-            const docRef = window.firebase.doc(db, "artifacts", appId, "users", userId, "profile", "data");
-            try {
-                await window.firebase.setDoc(docRef, state);
-            } catch (error) {
-                console.error("Error saving state to Firestore:", error);
+            function saveState() {
+                localStorage.setItem('rolloxFitplanState', JSON.stringify(state));
             }
-        }
-        
-        async function handleGoogleSignIn() {
-            const provider = new window.firebase.GoogleAuthProvider();
-            try {
-                await window.firebase.signInWithPopup(auth, provider);
-                // onAuthStateChanged will handle the rest
-            } catch (error) {
-                console.error("Google Sign-In failed:", error);
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        }
-
-        async function handleLogout() {
-            try {
-                await window.firebase.signOut(auth);
-                // onAuthStateChanged will handle UI switch
-            } catch (error) {
-                console.error("Logout failed:", error);
-            }
-        }
-
-        // --- UI Switching ---
-        function showAuthPage(pageId) {
-            loginPage.classList.add('hidden');
-            setupPage.classList.add('hidden');
-            appContainer.classList.add('hidden');
             
-            const pageToShow = document.getElementById(pageId);
-            pageToShow.classList.remove('hidden');
-            pageToShow.style.display = 'flex';
-        }
-
-        function showApp() {
-            loginPage.style.display = 'none';
-            setupPage.style.display = 'none';
-            appContainer.style.display = 'block';
-            appContainer.classList.remove('hidden');
-            
-            updateDashboard();
-            renderProgressHistory();
-            renderDailyMeals();
-            populatePlanSelector();
-            renderWorkoutPlan();
-            showPage('dashboard-page');
-        }
-
-        function showPage(pageId, isBackNavigation = false) {
-            const currentPage = Array.from(pages).find(p => !p.classList.contains('hidden'));
-            
-            if (currentPage && !isBackNavigation) {
-                if (!state.pageHistory) state.pageHistory = [];
-                state.pageHistory.push(currentPage.id);
+            // --- UI Switching ---
+            function showAuthPage(pageId) {
+                loginPage.classList.add('hidden');
+                setupPage.classList.add('hidden');
+                appContainer.classList.add('hidden');
+                
+                const pageToShow = document.getElementById(pageId);
+                pageToShow.classList.remove('hidden');
+                pageToShow.style.display = 'flex';
             }
 
-            pages.forEach(page => page.classList.add('hidden'));
-            document.getElementById(pageId).classList.remove('hidden');
+            function showApp() {
+                loginPage.style.display = 'none';
+                setupPage.style.display = 'none';
+                appContainer.style.display = 'block';
+                appContainer.classList.remove('hidden');
+                
+                updateDashboard();
+                renderProgressHistory();
+                renderDailyMeals();
+                populatePlanSelector();
+                renderWorkoutPlan();
+                showPage('dashboard-page');
+            }
 
-            mainNav.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.dataset.page === pageId) {
-                    item.classList.add('active');
+            function showPage(pageId, isBackNavigation = false) {
+                const currentPage = Array.from(pages).find(p => !p.classList.contains('hidden'));
+                
+                if (currentPage && !isBackNavigation) {
+                    if (!state.pageHistory) state.pageHistory = [];
+                    state.pageHistory.push(currentPage.id);
                 }
-            });
 
-            backButton.classList.toggle('hidden', !state.pageHistory || state.pageHistory.length === 0);
+                pages.forEach(page => page.classList.add('hidden'));
+                document.getElementById(pageId).classList.remove('hidden');
 
-            // Special handling for pages that need data refresh on view
-            if (pageId === 'report-page') renderReportChart();
-            if (pageId === 'diet-page') renderDailyMeals();
-            if (pageId === 'fitness-page') { populatePlanSelector(); renderWorkoutPlan(); }
-            if (pageId === 'library-page') renderExerciseLibrary();
-            if (pageId === 'food-page') renderFoodResults();
-            if (pageId === 'profile-page') renderProfilePage();
-            if (pageId === 'budget-page') renderBudgetPage();
-            if (pageId === 'builder-page') renderCustomRoutines();
-        }
+                mainNav.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                    if (item.dataset.page === pageId) {
+                        item.classList.add('active');
+                    }
+                });
 
-        // --- Event Handlers ---
-        async function handleSetupSubmit(e) {
-            e.preventDefault();
-            state.user = {
-                weight: parseFloat(document.getElementById('weight').value),
-                height: parseFloat(document.getElementById('height').value),
-                age: parseInt(document.getElementById('age').value, 10),
-                gender: document.getElementById('gender').value,
-                budget: parseFloat(document.getElementById('budget').value),
-                currency: document.getElementById('currency').value,
-                country: document.getElementById('country').value,
-                fitnessGoal: document.getElementById('fitness-goal').value,
-                workoutLocation: document.getElementById('workout-location').value,
-            };
-            
-            // Initialize all data structures for a new user
-            state.progress = [{ date: new Date().toISOString().split('T')[0], weight: state.user.weight }];
-            state.meals = {};
-            state.expenses = [];
-            state.completedWorkouts = {};
-            state.customWorkouts = [];
-            state.activeWorkoutPlan = 'generated';
-            generateWorkoutPlan();
-            
-            await saveState();
-            showApp();
-        }
+                backButton.classList.toggle('hidden', !state.pageHistory || state.pageHistory.length === 0);
 
-        function handleNavClick(e) {
-            const target = e.target.closest('.nav-item');
-            if (target && target.dataset.page) {
-                showPage(target.dataset.page);
-                 if (window.innerWidth < 768) { // Close menu on mobile nav click
-                    toggleMobileMenu();
-                }
+                // Special handling for pages that need data refresh on view
+                if (pageId === 'report-page') renderReportChart();
+                if (pageId === 'diet-page') renderDailyMeals();
+                if (pageId === 'fitness-page') { populatePlanSelector(); renderWorkoutPlan(); }
+                if (pageId === 'library-page') renderExerciseLibrary();
+                if (pageId === 'food-page') renderFoodResults();
+                if (pageId === 'profile-page') renderProfilePage();
+                if (pageId === 'budget-page') renderBudgetPage();
+                if (pageId === 'builder-page') renderCustomRoutines();
             }
-        }
-        
-        async function handleBackClick() {
-            if (state.pageHistory && state.pageHistory.length > 0) {
-                const previousPageId = state.pageHistory.pop();
-                showPage(previousPageId, true);
-                await saveState();
-            }
-        }
-        
-        function toggleMobileMenu() {
-            sidebar.classList.toggle('-translate-x-full');
-            menuOverlay.classList.toggle('hidden');
-        }
 
-        async function handleAddMeal(e) {
-            e.preventDefault();
-            const mealName = document.getElementById('meal-name').value;
-            const mealCalories = parseInt(document.getElementById('meal-calories').value, 10);
-            const mealProtein = parseInt(document.getElementById('meal-protein').value, 10) || 0;
-            const mealCarbs = parseInt(document.getElementById('meal-carbs').value, 10) || 0;
-            const mealType = document.getElementById('meal-type').value;
-
-            await addMealToState({
-                name: mealName,
-                calories: mealCalories,
-                protein: mealProtein,
-                carbs: mealCarbs,
-                type: mealType
-            });
-            
-            document.getElementById('add-meal-form').reset();
-        }
-        
-        async function handleDeleteMeal(e) {
-            if (!e.target.matches('.delete-meal-btn')) return;
-            const mealId = parseInt(e.target.dataset.id, 10);
-            const today = new Date().toISOString().split('T')[0];
-            
-            state.meals[today] = state.meals[today].filter(meal => meal.id !== mealId);
-            
-            await saveState();
-            renderDailyMeals();
-            updateDashboard();
-        }
-
-        async function handleAddExpense(e) {
-            e.preventDefault();
-            const desc = document.getElementById('expense-desc').value;
-            const amount = parseFloat(document.getElementById('expense-amount').value);
-
-            if(!desc || isNaN(amount) || amount <= 0) return;
-            if(!state.expenses) state.expenses = [];
-
-            state.expenses.push({
-                id: Date.now(),
-                date: new Date().toISOString(),
-                description: desc,
-                amount: amount
-            });
-
-            await saveState();
-            renderBudgetPage();
-            document.getElementById('add-expense-form').reset();
-        }
-
-        async function handleDeleteExpense(e) {
-            if(!e.target.matches('.delete-expense-btn')) return;
-            const expenseId = parseInt(e.target.dataset.id, 10);
-            state.expenses = state.expenses.filter(exp => exp.id !== expenseId);
-            await saveState();
-            renderBudgetPage();
-        }
-
-
-        async function handleWorkoutClick(e) {
-            const exerciseTarget = e.target.closest('.exercise-link');
-            const completeTarget = e.target.closest('.complete-workout-btn');
-            
-            if (exerciseTarget) {
+            // --- Event Handlers ---
+            function handleSetupSubmit(e) {
                 e.preventDefault();
-                const exerciseName = exerciseTarget.dataset.exerciseName;
-                openExerciseModal(exerciseName);
-            } else if (completeTarget) {
-                const day = completeTarget.dataset.day;
-                const today = new Date().toISOString().split('T')[0];
-                if(!state.completedWorkouts) state.completedWorkouts = {};
-                state.completedWorkouts[today] = day; 
-                await saveState();
-                renderWorkoutPlan(); 
-            }
-        }
-        
-        async function handleProfileUpdate(e) {
-            e.preventDefault();
-            const originalGoal = state.user.fitnessGoal;
-            
-            state.user.weight = parseFloat(document.getElementById('profile-weight').value);
-            state.user.height = parseFloat(document.getElementById('profile-height').value);
-            state.user.age = parseInt(document.getElementById('profile-age').value, 10);
-            state.user.gender = document.getElementById('profile-gender').value;
-            state.user.fitnessGoal = document.getElementById('profile-goal').value;
-            state.user.workoutLocation = document.getElementById('profile-location').value;
-
-            if(originalGoal !== state.user.fitnessGoal) {
+                state.user = {
+                    weight: parseFloat(document.getElementById('weight').value),
+                    height: parseFloat(document.getElementById('height').value),
+                    age: parseInt(document.getElementById('age').value, 10),
+                    gender: document.getElementById('gender').value,
+                    budget: parseFloat(document.getElementById('budget').value),
+                    currency: document.getElementById('currency').value,
+                    country: document.getElementById('country').value,
+                    fitnessGoal: document.getElementById('fitness-goal').value,
+                    workoutLocation: document.getElementById('workout-location').value,
+                };
+                
+                // Initialize all data structures for a new user
+                state.progress = [{ date: new Date().toISOString().split('T')[0], weight: state.user.weight }];
+                state.meals = {};
+                state.expenses = [];
+                state.completedWorkouts = {};
+                state.customWorkouts = [];
+                state.activeWorkoutPlan = 'generated';
                 generateWorkoutPlan();
+                
+                saveState();
+                showApp();
             }
 
-            await saveState();
-            updateDashboard();
-            populatePlanSelector(); // Refresh plan selector in case generated plan name changes
-            renderWorkoutPlan();
+            function handleNavClick(e) {
+                const target = e.target.closest('.nav-item');
+                if (target && target.dataset.page) {
+                    showPage(target.dataset.page);
+                     if (window.innerWidth < 768) { // Close menu on mobile nav click
+                        toggleMobileMenu();
+                    }
+                }
+            }
+            
+            function handleBackClick() {
+                if (state.pageHistory && state.pageHistory.length > 0) {
+                    const previousPageId = state.pageHistory.pop();
+                    showPage(previousPageId, true);
+                    saveState();
+                }
+            }
+            
+            function toggleMobileMenu() {
+                sidebar.classList.toggle('-translate-x-full');
+                menuOverlay.classList.toggle('hidden');
+            }
 
-            const successMsg = document.getElementById('profile-success-message');
-            successMsg.classList.remove('hidden');
-            setTimeout(() => successMsg.classList.add('hidden'), 3000);
-        }
+            function handleAddMeal(e) {
+                e.preventDefault();
+                const mealName = document.getElementById('meal-name').value;
+                const mealCalories = parseInt(document.getElementById('meal-calories').value, 10);
+                const mealProtein = parseInt(document.getElementById('meal-protein').value, 10) || 0;
+                const mealCarbs = parseInt(document.getElementById('meal-carbs').value, 10) || 0;
+                const mealType = document.getElementById('meal-type').value;
 
-        function handleStopwatchStartPause() {
-            const button = document.getElementById('stopwatch-start-pause');
-            if (stopwatch.running) {
+                addMealToState({
+                    name: mealName,
+                    calories: mealCalories,
+                    protein: mealProtein,
+                    carbs: mealCarbs,
+                    type: mealType
+                });
+                
+                document.getElementById('add-meal-form').reset();
+            }
+            
+            function handleDeleteMeal(e) {
+                if (!e.target.matches('.delete-meal-btn')) return;
+                const mealId = parseInt(e.target.dataset.id, 10);
+                const today = new Date().toISOString().split('T')[0];
+                
+                state.meals[today] = state.meals[today].filter(meal => meal.id !== mealId);
+                
+                saveState();
+                renderDailyMeals();
+                updateDashboard();
+            }
+
+            function handleAddExpense(e) {
+                e.preventDefault();
+                const desc = document.getElementById('expense-desc').value;
+                const amount = parseFloat(document.getElementById('expense-amount').value);
+
+                if(!desc || isNaN(amount) || amount <= 0) return;
+                if(!state.expenses) state.expenses = [];
+
+                state.expenses.push({
+                    id: Date.now(),
+                    date: new Date().toISOString(),
+                    description: desc,
+                    amount: amount
+                });
+
+                saveState();
+                renderBudgetPage();
+                document.getElementById('add-expense-form').reset();
+            }
+
+            function handleDeleteExpense(e) {
+                if(!e.target.matches('.delete-expense-btn')) return;
+                const expenseId = parseInt(e.target.dataset.id, 10);
+                state.expenses = state.expenses.filter(exp => exp.id !== expenseId);
+                saveState();
+                renderBudgetPage();
+            }
+
+
+            function handleWorkoutClick(e) {
+                const exerciseTarget = e.target.closest('.exercise-link');
+                const completeTarget = e.target.closest('.complete-workout-btn');
+                
+                if (exerciseTarget) {
+                    e.preventDefault();
+                    const exerciseName = exerciseTarget.dataset.exerciseName;
+                    openExerciseModal(exerciseName);
+                } else if (completeTarget) {
+                    const day = completeTarget.dataset.day;
+                    const today = new Date().toISOString().split('T')[0];
+                    if(!state.completedWorkouts) state.completedWorkouts = {};
+                    state.completedWorkouts[today] = day; 
+                    saveState();
+                    renderWorkoutPlan(); 
+                }
+            }
+            
+            function handleProfileUpdate(e) {
+                e.preventDefault();
+                const originalGoal = state.user.fitnessGoal;
+                
+                state.user.weight = parseFloat(document.getElementById('profile-weight').value);
+                state.user.height = parseFloat(document.getElementById('profile-height').value);
+                state.user.age = parseInt(document.getElementById('profile-age').value, 10);
+                state.user.gender = document.getElementById('profile-gender').value;
+                state.user.fitnessGoal = document.getElementById('profile-goal').value;
+                state.user.workoutLocation = document.getElementById('profile-location').value;
+
+                if(originalGoal !== state.user.fitnessGoal) {
+                    generateWorkoutPlan();
+                }
+
+                saveState();
+                updateDashboard();
+                populatePlanSelector(); // Refresh plan selector in case generated plan name changes
+                renderWorkoutPlan();
+
+                const successMsg = document.getElementById('profile-success-message');
+                successMsg.classList.remove('hidden');
+                setTimeout(() => successMsg.classList.add('hidden'), 3000);
+            }
+
+            function handleStopwatchStartPause() {
+                const button = document.getElementById('stopwatch-start-pause');
+                if (stopwatch.running) {
+                    clearInterval(stopwatch.timerInterval);
+                    stopwatch.running = false;
+                    button.textContent = 'Start';
+                    button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+                    button.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
+                } else {
+                    stopwatch.startTime = Date.now() - stopwatch.elapsedTime;
+                    stopwatch.timerInterval = setInterval(updateStopwatchDisplay, 10);
+                    stopwatch.running = true;
+                    button.textContent = 'Pause';
+                    button.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
+                    button.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+                }
+            }
+
+            function handleStopwatchReset() {
                 clearInterval(stopwatch.timerInterval);
-                stopwatch.running = false;
+                stopwatch = { startTime: 0, elapsedTime: 0, timerInterval: null, running: false };
+                document.getElementById('stopwatch-display').textContent = '00:00:00.00';
+                const button = document.getElementById('stopwatch-start-pause');
                 button.textContent = 'Start';
                 button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
                 button.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
-            } else {
-                stopwatch.startTime = Date.now() - stopwatch.elapsedTime;
-                stopwatch.timerInterval = setInterval(updateStopwatchDisplay, 10);
-                stopwatch.running = true;
-                button.textContent = 'Pause';
-                button.classList.remove('bg-emerald-500', 'hover:bg-emerald-600');
-                button.classList.add('bg-yellow-500', 'hover:bg-yellow-600');
             }
-        }
 
-        function handleStopwatchReset() {
-            clearInterval(stopwatch.timerInterval);
-            stopwatch = { startTime: 0, elapsedTime: 0, timerInterval: null, running: false };
-            document.getElementById('stopwatch-display').textContent = '00:00:00.00';
-            const button = document.getElementById('stopwatch-start-pause');
-            button.textContent = 'Start';
-            button.classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
-            button.classList.add('bg-emerald-500', 'hover:bg-emerald-600');
-        }
-
-        function updateStopwatchDisplay() {
-            const currentTime = Date.now();
-            stopwatch.elapsedTime = currentTime - stopwatch.startTime;
-            document.getElementById('stopwatch-display').textContent = formatTime(stopwatch.elapsedTime);
-        }
-        
-        function formatTime(time) {
-            let minutes = Math.floor(time / 60000);
-            let seconds = Math.floor((time % 60000) / 1000);
-            let centiseconds = Math.floor((time % 1000) / 10);
-            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(centiseconds).padStart(2, '0')}`;
-        }
-
-        async function handleProgressSubmit(e) {
-            e.preventDefault();
-            const weightInput = document.getElementById('progress-weight');
-            const newWeight = parseFloat(weightInput.value);
-
-            if (isNaN(newWeight) || newWeight <= 0) return;
-            if(!state.progress) state.progress = [];
-
-            state.progress.push({ date: new Date().toISOString().split('T')[0], weight: newWeight });
-            state.user.weight = newWeight;
-            await saveState();
-            renderProgressHistory();
-            updateDashboard();
-            weightInput.value = '';
-        }
-
-        async function handleFoodResultClick(e) {
-            const button = e.target.closest('.add-food-btn');
-            if (!button) return;
-
-            const foodName = button.dataset.name;
-            const food = foodDatabase[foodName];
-            if (food) {
-                state.foodToAdd = { name: foodName, ...food };
-                openAddFoodModal();
+            function updateStopwatchDisplay() {
+                const currentTime = Date.now();
+                stopwatch.elapsedTime = currentTime - stopwatch.startTime;
+                document.getElementById('stopwatch-display').textContent = formatTime(stopwatch.elapsedTime);
             }
-        }
-        
-        async function handleAddFoodFromModal(e) {
-            e.preventDefault();
-            if (!state.foodToAdd) return;
-
-            const mealType = document.getElementById('add-food-modal-type').value;
-            await addMealToState({ ...state.foodToAdd, type: mealType });
-            closeAddFoodModal();
-        }
-        
-        async function handlePlanSelection(e) {
-            state.activeWorkoutPlan = e.target.value;
-            await saveState();
-            renderWorkoutPlan();
-        }
-        
-        async function handleCustomRoutineClick(e) {
-            const editBtn = e.target.closest('.edit-routine-btn');
-            const deleteBtn = e.target.closest('.delete-routine-btn');
             
-            if (editBtn) {
-                const routineId = parseInt(editBtn.dataset.id, 10);
-                openBuilderModal(routineId);
+            function formatTime(time) {
+                let minutes = Math.floor(time / 60000);
+                let seconds = Math.floor((time % 60000) / 1000);
+                let centiseconds = Math.floor((time % 1000) / 10);
+                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}:${String(centiseconds).padStart(2, '0')}`;
             }
-            if (deleteBtn) {
-                const routineId = parseInt(deleteBtn.dataset.id, 10);
-                if (confirm('Are you sure you want to delete this routine?')) {
-                    state.customWorkouts = state.customWorkouts.filter(r => r.id !== routineId);
-                    if (state.activeWorkoutPlan == routineId) {
-                        state.activeWorkoutPlan = 'generated';
+
+            function handleProgressSubmit(e) {
+                e.preventDefault();
+                const weightInput = document.getElementById('progress-weight');
+                const newWeight = parseFloat(weightInput.value);
+
+                if (isNaN(newWeight) || newWeight <= 0) return;
+                if(!state.progress) state.progress = [];
+
+                state.progress.push({ date: new Date().toISOString().split('T')[0], weight: newWeight });
+                state.user.weight = newWeight;
+                saveState();
+                renderProgressHistory();
+                updateDashboard();
+                weightInput.value = '';
+            }
+
+            function handleFoodResultClick(e) {
+                const button = e.target.closest('.add-food-btn');
+                if (!button) return;
+
+                const foodName = button.dataset.name;
+                const food = foodDatabase[foodName];
+                if (food) {
+                    state.foodToAdd = { name: foodName, ...food };
+                    openAddFoodModal();
+                }
+            }
+            
+            function handleAddFoodFromModal(e) {
+                e.preventDefault();
+                if (!state.foodToAdd) return;
+
+                const mealType = document.getElementById('add-food-modal-type').value;
+                addMealToState({ ...state.foodToAdd, type: mealType });
+                closeAddFoodModal();
+            }
+            
+            function handlePlanSelection(e) {
+                state.activeWorkoutPlan = e.target.value;
+                saveState();
+                renderWorkoutPlan();
+            }
+            
+            function handleCustomRoutineClick(e) {
+                const editBtn = e.target.closest('.edit-routine-btn');
+                const deleteBtn = e.target.closest('.delete-routine-btn');
+                
+                if (editBtn) {
+                    const routineId = parseInt(editBtn.dataset.id, 10);
+                    openBuilderModal(routineId);
+                }
+                if (deleteBtn) {
+                    const routineId = parseInt(deleteBtn.dataset.id, 10);
+                    if (confirm('Are you sure you want to delete this routine?')) {
+                        state.customWorkouts = state.customWorkouts.filter(r => r.id !== routineId);
+                        if (state.activeWorkoutPlan == routineId) {
+                            state.activeWorkoutPlan = 'generated';
+                        }
+                        saveState();
+                        renderCustomRoutines();
                     }
-                    await saveState();
-                    renderCustomRoutines();
                 }
             }
-        }
-        
-        async function handleSaveRoutine() {
-            const nameInput = document.getElementById('builder-routine-name');
-            const name = nameInput.value.trim();
-            if (!name) {
-                alert('Please enter a routine name.');
-                return;
-            }
+            
+            function handleSaveRoutine() {
+                const nameInput = document.getElementById('builder-routine-name');
+                const name = nameInput.value.trim();
+                if (!name) {
+                    alert('Please enter a routine name.');
+                    return;
+                }
 
-            const routine = {
-                id: editingRoutineId || Date.now(),
-                name: name,
-                plan: {}
-            };
+                const routine = {
+                    id: editingRoutineId || Date.now(),
+                    name: name,
+                    plan: {}
+                };
 
-            const dayContainers = document.querySelectorAll('.builder-day');
-            dayContainers.forEach(container => {
-                const day = container.dataset.day;
-                const exercises = [];
-                const exerciseItems = container.querySelectorAll('.builder-exercise-item');
-                exerciseItems.forEach(item => {
-                    exercises.push({
-                        name: item.dataset.name,
-                        sets: item.querySelector('input').value
+                const dayContainers = document.querySelectorAll('.builder-day');
+                dayContainers.forEach(container => {
+                    const day = container.dataset.day;
+                    const exercises = [];
+                    const exerciseItems = container.querySelectorAll('.builder-exercise-item');
+                    exerciseItems.forEach(item => {
+                        exercises.push({
+                            name: item.dataset.name,
+                            sets: item.querySelector('input').value
+                        });
                     });
+                    routine.plan[day] = { exercises: exercises }; // Simplified structure
                 });
-                routine.plan[day] = { exercises: exercises }; // Simplified structure
-            });
 
-            if (editingRoutineId) {
-                const index = state.customWorkouts.findIndex(r => r.id === editingRoutineId);
-                state.customWorkouts[index] = routine;
-            } else {
-                state.customWorkouts.push(routine);
+                if (editingRoutineId) {
+                    const index = state.customWorkouts.findIndex(r => r.id === editingRoutineId);
+                    state.customWorkouts[index] = routine;
+                } else {
+                    state.customWorkouts.push(routine);
+                }
+                
+                saveState();
+                closeBuilderModal();
+                renderCustomRoutines();
             }
             
-            await saveState();
-            closeBuilderModal();
-            renderCustomRoutines();
-        }
-        
-        function handleBuilderDayClick(e) {
-            const addBtn = e.target.closest('.builder-add-exercise-btn');
-            const removeBtn = e.target.closest('.builder-remove-exercise-btn');
+            function handleBuilderDayClick(e) {
+                const addBtn = e.target.closest('.builder-add-exercise-btn');
+                const removeBtn = e.target.closest('.builder-remove-exercise-btn');
+                
+                if (addBtn) {
+                    const day = addBtn.dataset.day;
+                    const exerciseName = prompt(`Enter the exact name of the exercise from the library to add to ${day}:`);
+                    if (exerciseName && exerciseDatabase[exerciseName]) {
+                        addExerciseToBuilderDay(day, exerciseName);
+                    } else if(exerciseName) {
+                        alert('Exercise not found in library. Please check spelling and capitalization.');
+                    }
+                }
+                
+                if (removeBtn) {
+                    removeBtn.closest('.builder-exercise-item').remove();
+                }
+            }
+
+
+            // --- Rendering ---
+            function updateDashboard() {
+                if (!state.user) return;
+                const { calories, protein, carbs } = calculateMacroGoals();
+                const today = new Date().toISOString().split('T')[0];
+                const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
+                const consumed = mealsToday.reduce((acc, meal) => {
+                    acc.calories += meal.calories;
+                    acc.protein += (meal.protein || 0);
+                    acc.carbs += (meal.carbs || 0);
+                    return acc;
+                }, { calories: 0, protein: 0, carbs: 0 });
+
+                document.getElementById('dashboard-calorie-goal').textContent = calories;
+                document.getElementById('dashboard-calories-consumed').textContent = consumed.calories;
+                document.getElementById('dashboard-protein-goal').textContent = protein;
+                document.getElementById('dashboard-protein-consumed').textContent = consumed.protein;
+                document.getElementById('dashboard-carbs-goal').textContent = carbs;
+                document.getElementById('dashboard-carbs-consumed').textContent = consumed.carbs;
+                document.getElementById('dashboard-current-weight').textContent = state.user.weight;
+            }
+
+            function renderProgressHistory() {
+                const historyList = document.getElementById('progress-history');
+                historyList.innerHTML = `<li class="text-gray-500">No entries yet.</li>`;
+                if (!state.progress || state.progress.length === 0) return;
+                
+                historyList.innerHTML = '';
+                const sortedProgress = [...state.progress].sort((a,b) => new Date(b.date) - new Date(a.date));
+                sortedProgress.forEach(entry => {
+                    const li = document.createElement('li');
+                    li.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-md';
+                    li.innerHTML = `<span class="font-medium">${new Date(entry.date).toLocaleDateString()}</span> <span class="font-bold text-lg">${entry.weight} kg</span>`;
+                    historyList.appendChild(li);
+                });
+            }
             
-            if (addBtn) {
-                const day = addBtn.dataset.day;
-                const exerciseName = prompt(`Enter the exact name of the exercise from the library to add to ${day}:`);
-                if (exerciseName && exerciseDatabase[exerciseName]) {
-                    addExerciseToBuilderDay(day, exerciseName);
-                } else if(exerciseName) {
-                    alert('Exercise not found in library. Please check spelling and capitalization.');
+            function renderDailyMeals() {
+                const today = new Date().toISOString().split('T')[0];
+                const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
+                const goals = calculateMacroGoals();
+
+                const totals = mealsToday.reduce((acc, meal) => {
+                    acc.calories += meal.calories;
+                    acc.protein += (meal.protein || 0);
+                    acc.carbs += (meal.carbs || 0);
+                    return acc;
+                }, { calories: 0, protein: 0, carbs: 0 });
+
+                document.getElementById('summary-calories-consumed').textContent = totals.calories;
+                document.getElementById('summary-calorie-goal').textContent = goals.calories;
+                document.getElementById('summary-protein-consumed').textContent = totals.protein;
+                document.getElementById('summary-protein-goal').textContent = goals.protein;
+                document.getElementById('summary-carbs-consumed').textContent = totals.carbs;
+                document.getElementById('summary-carbs-goal').textContent = goals.carbs;
+
+
+                const mealsByType = mealsToday.reduce((acc, meal) => {
+                    if (!acc[meal.type]) acc[meal.type] = [];
+                    acc[meal.type].push(meal);
+                    return acc;
+                }, {});
+
+                mealLogContainer.innerHTML = '';
+                ['Breakfast', 'Lunch', 'Dinner', 'Snack'].forEach(type => {
+                    const section = document.createElement('div');
+                    let mealHtml = `<h3 class="text-lg font-semibold border-b pb-2 mb-3">${type}</h3><ul class="space-y-3">`;
+                    if (mealsByType[type] && mealsByType[type].length > 0) {
+                        mealsByType[type].forEach(meal => {
+                            mealHtml += `
+                                <li class="flex justify-between items-center text-sm">
+                                    <div>
+                                        <p class="font-semibold">${meal.name}</p>
+                                        <p class="text-xs text-gray-500">P: ${meal.protein || 0}g C: ${meal.carbs || 0}g</p>
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="font-semibold">${meal.calories} kcal</span>
+                                        <button data-id="${meal.id}" class="delete-meal-btn text-red-400 hover:text-red-600">&times;</button>
+                                    </div>
+                                </li>
+                            `;
+                        });
+                    } else {
+                        mealHtml += `<li class="text-gray-500">No ${type.toLowerCase()} logged yet.</li>`;
+                    }
+                    mealHtml += `</ul>`;
+                    section.innerHTML = mealHtml;
+                    mealLogContainer.appendChild(section);
+                });
+            }
+            
+            function populatePlanSelector() {
+                planSelector.innerHTML = '';
+                const generatedOpt = document.createElement('option');
+                generatedOpt.value = 'generated';
+                generatedOpt.textContent = 'Generated Plan';
+                planSelector.appendChild(generatedOpt);
+
+                (state.customWorkouts || []).forEach(routine => {
+                    const opt = document.createElement('option');
+                    opt.value = routine.id;
+                    opt.textContent = routine.name;
+                    planSelector.appendChild(opt);
+                });
+
+                planSelector.value = state.activeWorkoutPlan || 'generated';
+            }
+
+            function renderWorkoutPlan() {
+                if (!workoutPlanContainer || !state.user) return;
+                
+                let planToRender;
+                if (state.activeWorkoutPlan === 'generated' || !state.activeWorkoutPlan) {
+                    planToRender = state.workoutPlan;
+                } else {
+                    const customPlan = (state.customWorkouts || []).find(r => r.id == state.activeWorkoutPlan);
+                    planToRender = customPlan ? customPlan.plan : state.workoutPlan;
+                }
+
+                workoutPlanContainer.innerHTML = '';
+                const today = new Date().toISOString().split('T')[0];
+                const completedDay = (state.completedWorkouts && state.completedWorkouts[today]) ? state.completedWorkouts[today] : null;
+                
+                const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+                daysOfWeek.forEach(day => {
+                    const dayData = planToRender[day] || { title: "Rest Day", exercises: [] };
+                    const dayCard = document.createElement('div');
+                    dayCard.className = 'card p-6';
+                    
+                    const isCompleted = completedDay === day;
+                    
+                    let exercisesHtml = `<div class="flex justify-between items-start"><div><h3 class="text-xl font-bold mb-2 text-blue-600">${day}</h3><p class="font-semibold mb-4">${dayData.title || ''}</p></div></div><ul class="space-y-3">`;
+
+                    if (dayData.exercises && dayData.exercises.length > 0) {
+                        dayData.exercises.forEach(ex => {
+                             exercisesHtml += `<li><p><a href="#" class="exercise-link" data-exercise-name="${ex.name}">${ex.name}</a></p><p class="text-sm text-gray-600">${ex.sets}</p></li>`;
+                        });
+                         exercisesHtml += `</ul><button data-day="${day}" class="complete-workout-btn btn-secondary mt-4 w-full ${isCompleted ? 'btn-secondary-complete' : ''}">${isCompleted ? 'Completed ✔' : 'Mark as Complete'}</button>`;
+                    } else {
+                         exercisesHtml += `<li><p class="font-semibold">Rest Day</p></li></ul>`;
+                    }
+
+                    dayCard.innerHTML = exercisesHtml;
+                    workoutPlanContainer.appendChild(dayCard);
+                });
+            }
+            
+            function renderCustomRoutines() {
+                customRoutinesContainer.innerHTML = '';
+                if (!state.customWorkouts || state.customWorkouts.length === 0) {
+                    customRoutinesContainer.innerHTML = `<p class="text-center text-gray-500">You haven't created any custom routines yet.</p>`;
+                    return;
+                }
+
+                state.customWorkouts.forEach(routine => {
+                    const card = document.createElement('div');
+                    card.className = 'card p-4 flex justify-between items-center';
+                    card.innerHTML = `
+                        <h3 class="font-bold text-lg">${routine.name}</h3>
+                        <div class="flex gap-2">
+                            <button class="edit-routine-btn btn-secondary text-sm" data-id="${routine.id}">Edit</button>
+                            <button class="delete-routine-btn bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2 px-4 rounded-md" data-id="${routine.id}">Delete</button>
+                        </div>
+                    `;
+                    customRoutinesContainer.appendChild(card);
+                });
+            }
+            
+            function renderExerciseLibrary() {
+                if (!libraryContainer) return;
+                const searchTerm = document.getElementById('library-search').value.toLowerCase();
+                libraryContainer.innerHTML = '';
+
+                Object.keys(exerciseDatabase)
+                    .filter(name => name.toLowerCase().includes(searchTerm))
+                    .sort()
+                    .forEach(name => {
+                        const exercise = exerciseDatabase[name];
+                        const card = document.createElement('div');
+                        card.className = 'card p-4 flex flex-col justify-between';
+                        card.innerHTML = `
+                            <div>
+                               <h3 class="font-bold text-lg">${name}</h3>
+                               <p class="text-sm text-gray-500">${exercise.targetMuscles}</p>
+                            </div>
+                            <a href="#" class="exercise-link text-sm mt-4 self-start" data-exercise-name="${name}">View Details &rarr;</a>
+                        `;
+                        libraryContainer.appendChild(card);
+                    });
+            }
+            
+             function renderFoodResults() {
+                if (!foodResultsContainer) return;
+                const searchTerm = document.getElementById('food-search').value.toLowerCase();
+                foodResultsContainer.innerHTML = '';
+
+                Object.keys(foodDatabase)
+                    .filter(name => name.toLowerCase().includes(searchTerm))
+                    .sort()
+                    .forEach(name => {
+                        const food = foodDatabase[name];
+                        const card = document.createElement('div');
+                        card.className = 'card p-4';
+                        card.innerHTML = `
+                            <h3 class="font-bold text-lg">${name}</h3>
+                            <p class="text-sm text-gray-600">${food.calories} kcal &bull; P: ${food.protein}g &bull; C: ${food.carbs}g</p>
+                            <button class="add-food-btn btn-secondary text-sm mt-4 w-full" data-name="${name}">Add to Log</button>
+                        `;
+                        foodResultsContainer.appendChild(card);
+                    });
+            }
+
+            function renderBudgetPage() {
+                if (!state.user) return;
+                const { start, end } = getWeekRange(new Date());
+
+                const expensesThisWeek = (state.expenses || []).filter(exp => {
+                    const expDate = new Date(exp.date);
+                    return expDate >= start && expDate <= end;
+                });
+                
+                const spent = expensesThisWeek.reduce((total, exp) => total + exp.amount, 0);
+                const remaining = state.user.budget - spent;
+
+                document.getElementById('budget-goal').textContent = `${state.user.budget} ${state.user.currency}`;
+                document.getElementById('budget-spent').textContent = `${spent.toFixed(2)} ${state.user.currency}`;
+                document.getElementById('budget-remaining').textContent = `${remaining.toFixed(2)} ${state.user.currency}`;
+
+                expenseHistoryContainer.innerHTML = '';
+                if (expensesThisWeek.length > 0) {
+                     const sortedExpenses = [...expensesThisWeek].sort((a,b) => new Date(b.date) - new Date(a.date));
+                    sortedExpenses.forEach(exp => {
+                        const li = document.createElement('li');
+                        li.className = 'flex justify-between items-center text-sm p-3 bg-gray-50 rounded-md';
+                        li.innerHTML = `
+                            <div>
+                                <p class="font-semibold">${exp.description}</p>
+                                <p class="text-xs text-gray-500">${new Date(exp.date).toLocaleDateString()}</p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="font-semibold">${exp.amount.toFixed(2)} ${state.user.currency}</span>
+                                <button data-id="${exp.id}" class="delete-expense-btn text-red-400 hover:text-red-600 text-xl font-bold">&times;</button>
+                            </div>
+                        `;
+                        expenseHistoryContainer.appendChild(li);
+                    });
+                } else {
+                    expenseHistoryContainer.innerHTML = `<li class="text-gray-500">No expenses logged this week.</li>`;
                 }
             }
             
-            if (removeBtn) {
-                removeBtn.closest('.builder-exercise-item').remove();
+            function renderProfilePage() {
+                if (!state.user) return;
+                document.getElementById('profile-weight').value = state.user.weight;
+                document.getElementById('profile-height').value = state.user.height;
+                document.getElementById('profile-age').value = state.user.age;
+                
+                const genderSelect = document.getElementById('profile-gender');
+                genderSelect.innerHTML = `<option>Male</option><option>Female</option>`;
+                genderSelect.value = state.user.gender;
+
+                const goalSelect = document.getElementById('profile-goal');
+                goalSelect.innerHTML = `<option value="lose-weight">Lose Weight</option><option value="build-muscle">Build Muscle</option>`;
+                goalSelect.value = state.user.fitnessGoal;
+
+                const locationSelect = document.getElementById('profile-location');
+                locationSelect.innerHTML = `<option value="gym">Gym (with equipment)</option><option value="home">Home (no equipment)</option>`;
+                locationSelect.value = state.user.workoutLocation;
             }
-        }
 
 
-        // --- Rendering ---
-        function updateDashboard() {
-            if (!state.user) return;
-            const { calories, protein, carbs } = calculateMacroGoals();
-            const today = new Date().toISOString().split('T')[0];
-            const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
-            const consumed = mealsToday.reduce((acc, meal) => {
-                acc.calories += meal.calories;
-                acc.protein += (meal.protein || 0);
-                acc.carbs += (meal.carbs || 0);
-                return acc;
-            }, { calories: 0, protein: 0, carbs: 0 });
+            function renderReportChart() {
+                const ctx = document.getElementById('progress-chart').getContext('2d');
+                const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
+                document.getElementById('report-month-title').textContent = `Progress for ${currentMonthName}`;
+                const labels = (state.progress || []).map(p => new Date(p.date).toLocaleDateString());
+                const data = (state.progress || []).map(p => p.weight);
 
-            document.getElementById('dashboard-calorie-goal').textContent = calories;
-            document.getElementById('dashboard-calories-consumed').textContent = consumed.calories;
-            document.getElementById('dashboard-protein-goal').textContent = protein;
-            document.getElementById('dashboard-protein-consumed').textContent = consumed.protein;
-            document.getElementById('dashboard-carbs-goal').textContent = carbs;
-            document.getElementById('dashboard-carbs-consumed').textContent = consumed.carbs;
-            document.getElementById('dashboard-current-weight').textContent = state.user.weight;
-        }
+                if (progressChartInstance) progressChartInstance.destroy();
 
-        function renderProgressHistory() {
-            const historyList = document.getElementById('progress-history');
-            historyList.innerHTML = `<li class="text-gray-500">No entries yet.</li>`;
-            if (!state.progress || state.progress.length === 0) return;
+                progressChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Weight (kg)',
+                            data: data,
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderColor: '#10B981',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { y: { beginAtZero: false } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
             
-            historyList.innerHTML = '';
-            const sortedProgress = [...state.progress].sort((a,b) => new Date(b.date) - new Date(a.date));
-            sortedProgress.forEach(entry => {
-                const li = document.createElement('li');
-                li.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-md';
-                li.innerHTML = `<span class="font-medium">${new Date(entry.date).toLocaleDateString()}</span> <span class="font-bold text-lg">${entry.weight} kg</span>`;
-                historyList.appendChild(li);
-            });
-        }
-        
-        function renderDailyMeals() {
-            const today = new Date().toISOString().split('T')[0];
-            const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
-            const goals = calculateMacroGoals();
+            function openExerciseModal(exerciseName) {
+                const exercise = exerciseDatabase[exerciseName];
+                if (!exercise) return;
 
-            const totals = mealsToday.reduce((acc, meal) => {
-                acc.calories += meal.calories;
-                acc.protein += (meal.protein || 0);
-                acc.carbs += (meal.carbs || 0);
-                return acc;
-            }, { calories: 0, protein: 0, carbs: 0 });
+                document.getElementById('modal-exercise-name').textContent = exerciseName;
+                document.getElementById('modal-exercise-description').textContent = exercise.description;
+                document.getElementById('modal-exercise-muscles').textContent = exercise.targetMuscles;
+                
+                const tipsList = document.getElementById('modal-exercise-tips');
+                tipsList.innerHTML = '';
+                exercise.tips.forEach(tip => {
+                    const li = document.createElement('li');
+                    li.textContent = tip;
+                    tipsList.appendChild(li);
+                });
+                
+                document.getElementById('modal-exercise-svg').innerHTML = `<p class="text-gray-400">Exercise illustration not available</p>`;
+                
+                modalBackdrop.classList.remove('hidden');
+                exerciseModal.classList.remove('hidden');
+            }
 
-            document.getElementById('summary-calories-consumed').textContent = totals.calories;
-            document.getElementById('summary-calorie-goal').textContent = goals.calories;
-            document.getElementById('summary-protein-consumed').textContent = totals.protein;
-            document.getElementById('summary-protein-goal').textContent = goals.protein;
-            document.getElementById('summary-carbs-consumed').textContent = totals.carbs;
-            document.getElementById('summary-carbs-goal').textContent = goals.carbs;
+            function closeExerciseModal() {
+                exerciseModal.classList.add('hidden');
+                if(builderModal.classList.contains('hidden') && addFoodModal.classList.contains('hidden')) {
+                     modalBackdrop.classList.add('hidden');
+                }
+            }
+            
+            function openAddFoodModal() {
+                if (!state.foodToAdd) return;
+                document.getElementById('add-food-modal-food-name-span').textContent = state.foodToAdd.name;
+                modalBackdrop.classList.remove('hidden');
+                addFoodModal.classList.remove('hidden');
+            }
 
+            function closeAddFoodModal() {
+                state.foodToAdd = null;
+                addFoodModal.classList.add('hidden');
+                if(builderModal.classList.contains('hidden') && exerciseModal.classList.contains('hidden')) {
+                     modalBackdrop.classList.add('hidden');
+                }
+            }
+            
+            function openBuilderModal(routineId = null) {
+                editingRoutineId = routineId;
+                const title = document.getElementById('builder-modal-title');
+                const nameInput = document.getElementById('builder-routine-name');
+                const daysContainer = document.getElementById('builder-days-container');
+                daysContainer.innerHTML = ''; // Clear previous content
 
-            const mealsByType = mealsToday.reduce((acc, meal) => {
-                if (!acc[meal.type]) acc[meal.type] = [];
-                acc[meal.type].push(meal);
-                return acc;
-            }, {});
+                const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                let routine = null;
 
-            mealLogContainer.innerHTML = '';
-            ['Breakfast', 'Lunch', 'Dinner', 'Snack'].forEach(type => {
-                const section = document.createElement('div');
-                let mealHtml = `<h3 class="text-lg font-semibold border-b pb-2 mb-3">${type}</h3><ul class="space-y-3">`;
-                if (mealsByType[type] && mealsByType[type].length > 0) {
-                    mealsByType[type].forEach(meal => {
-                        mealHtml += `
-                            <li class="flex justify-between items-center text-sm">
-                                <div>
-                                    <p class="font-semibold">${meal.name}</p>
-                                    <p class="text-xs text-gray-500">P: ${meal.protein || 0}g C: ${meal.carbs || 0}g</p>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <span class="font-semibold">${meal.calories} kcal</span>
-                                    <button data-id="${meal.id}" class="delete-meal-btn text-red-400 hover:text-red-600">&times;</button>
-                                </div>
-                            </li>
+                if (routineId) {
+                    title.textContent = 'Edit Routine';
+                    routine = state.customWorkouts.find(r => r.id === routineId);
+                    nameInput.value = routine.name;
+                } else {
+                    title.textContent = 'Create New Routine';
+                    nameInput.value = '';
+                }
+
+                daysOfWeek.forEach(day => {
+                    const dayExercises = (routine && routine.plan[day]) ? routine.plan[day].exercises : [];
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'builder-day card p-4';
+                    dayDiv.dataset.day = day;
+                    let exercisesHTML = '';
+                    dayExercises.forEach(ex => {
+                        exercisesHTML += `
+                             <div class="builder-exercise-item flex items-center gap-2 mb-2" data-name="${ex.name}">
+                                <p class="flex-1 font-semibold">${ex.name}</p>
+                                <input type="text" value="${ex.sets}" placeholder="Sets x Reps" class="w-24 border-gray-300 rounded-md shadow-sm text-sm">
+                                <button type="button" class="builder-remove-exercise-btn text-red-500 hover:text-red-700">&times;</button>
+                            </div>
                         `;
                     });
-                } else {
-                    mealHtml += `<li class="text-gray-500">No ${type.toLowerCase()} logged yet.</li>`;
-                }
-                mealHtml += `</ul>`;
-                section.innerHTML = mealHtml;
-                mealLogContainer.appendChild(section);
-            });
-        }
-        
-        function populatePlanSelector() {
-            planSelector.innerHTML = '';
-            const generatedOpt = document.createElement('option');
-            generatedOpt.value = 'generated';
-            generatedOpt.textContent = 'Generated Plan';
-            planSelector.appendChild(generatedOpt);
 
-            (state.customWorkouts || []).forEach(routine => {
-                const opt = document.createElement('option');
-                opt.value = routine.id;
-                opt.textContent = routine.name;
-                planSelector.appendChild(opt);
-            });
+                    dayDiv.innerHTML = `
+                        <h4 class="font-bold border-b pb-2 mb-3">${day}</h4>
+                        <div class="builder-exercise-list space-y-2">${exercisesHTML}</div>
+                        <button type="button" data-day="${day}" class="builder-add-exercise-btn btn-secondary text-sm mt-3 w-full">Add Exercise</button>
+                    `;
+                    daysContainer.appendChild(dayDiv);
+                });
 
-            planSelector.value = state.activeWorkoutPlan || 'generated';
-        }
-
-        function renderWorkoutPlan() {
-            if (!workoutPlanContainer || !state.user) return;
-            
-            let planToRender;
-            if (state.activeWorkoutPlan === 'generated' || !state.activeWorkoutPlan) {
-                planToRender = state.workoutPlan;
-            } else {
-                const customPlan = (state.customWorkouts || []).find(r => r.id == state.activeWorkoutPlan);
-                planToRender = customPlan ? customPlan.plan : state.workoutPlan;
+                modalBackdrop.classList.remove('hidden');
+                builderModal.classList.remove('hidden');
             }
 
-            workoutPlanContainer.innerHTML = '';
-            const today = new Date().toISOString().split('T')[0];
-            const completedDay = (state.completedWorkouts && state.completedWorkouts[today]) ? state.completedWorkouts[today] : null;
-            
-            const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-            daysOfWeek.forEach(day => {
-                const dayData = planToRender[day] || { title: "Rest Day", exercises: [] };
-                const dayCard = document.createElement('div');
-                dayCard.className = 'card p-6';
-                
-                const isCompleted = completedDay === day;
-                
-                let exercisesHtml = `<div class="flex justify-between items-start"><div><h3 class="text-xl font-bold mb-2 text-blue-600">${day}</h3><p class="font-semibold mb-4">${dayData.title || ''}</p></div></div><ul class="space-y-3">`;
-
-                if (dayData.exercises && dayData.exercises.length > 0) {
-                    dayData.exercises.forEach(ex => {
-                         exercisesHtml += `<li><p><a href="#" class="exercise-link" data-exercise-name="${ex.name}">${ex.name}</a></p><p class="text-sm text-gray-600">${ex.sets}</p></li>`;
-                    });
-                     exercisesHtml += `</ul><button data-day="${day}" class="complete-workout-btn btn-secondary mt-4 w-full ${isCompleted ? 'btn-secondary-complete' : ''}">${isCompleted ? 'Completed ✔' : 'Mark as Complete'}</button>`;
-                } else {
-                     exercisesHtml += `<li><p class="font-semibold">Rest Day</p></li></ul>`;
-                }
-
-                dayCard.innerHTML = exercisesHtml;
-                workoutPlanContainer.appendChild(dayCard);
-            });
-        }
-        
-        function renderCustomRoutines() {
-            customRoutinesContainer.innerHTML = '';
-            if (!state.customWorkouts || state.customWorkouts.length === 0) {
-                customRoutinesContainer.innerHTML = `<p class="text-center text-gray-500">You haven't created any custom routines yet.</p>`;
-                return;
-            }
-
-            state.customWorkouts.forEach(routine => {
-                const card = document.createElement('div');
-                card.className = 'card p-4 flex justify-between items-center';
-                card.innerHTML = `
-                    <h3 class="font-bold text-lg">${routine.name}</h3>
-                    <div class="flex gap-2">
-                        <button class="edit-routine-btn btn-secondary text-sm" data-id="${routine.id}">Edit</button>
-                        <button class="delete-routine-btn bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2 px-4 rounded-md" data-id="${routine.id}">Delete</button>
-                    </div>
+            function addExerciseToBuilderDay(day, exerciseName) {
+                const dayContainer = document.querySelector(`.builder-day[data-day="${day}"] .builder-exercise-list`);
+                const exerciseItem = document.createElement('div');
+                exerciseItem.className = 'builder-exercise-item flex items-center gap-2 mb-2';
+                exerciseItem.dataset.name = exerciseName;
+                exerciseItem.innerHTML = `
+                    <p class="flex-1 font-semibold">${exerciseName}</p>
+                    <input type="text" placeholder="Sets x Reps" class="w-24 border-gray-300 rounded-md shadow-sm text-sm">
+                    <button type="button" class="builder-remove-exercise-btn text-red-500 hover:text-red-700 font-bold text-xl">&times;</button>
                 `;
-                customRoutinesContainer.appendChild(card);
-            });
-        }
-        
-        function renderExerciseLibrary() {
-            if (!libraryContainer) return;
-            const searchTerm = document.getElementById('library-search').value.toLowerCase();
-            libraryContainer.innerHTML = '';
-
-            Object.keys(exerciseDatabase)
-                .filter(name => name.toLowerCase().includes(searchTerm))
-                .sort()
-                .forEach(name => {
-                    const exercise = exerciseDatabase[name];
-                    const card = document.createElement('div');
-                    card.className = 'card p-4 flex flex-col justify-between';
-                    card.innerHTML = `
-                        <div>
-                           <h3 class="font-bold text-lg">${name}</h3>
-                           <p class="text-sm text-gray-500">${exercise.targetMuscles}</p>
-                        </div>
-                        <a href="#" class="exercise-link text-sm mt-4 self-start" data-exercise-name="${name}">View Details &rarr;</a>
-                    `;
-                    libraryContainer.appendChild(card);
-                });
-        }
-        
-         function renderFoodResults() {
-            if (!foodResultsContainer) return;
-            const searchTerm = document.getElementById('food-search').value.toLowerCase();
-            foodResultsContainer.innerHTML = '';
-
-            Object.keys(foodDatabase)
-                .filter(name => name.toLowerCase().includes(searchTerm))
-                .sort()
-                .forEach(name => {
-                    const food = foodDatabase[name];
-                    const card = document.createElement('div');
-                    card.className = 'card p-4';
-                    card.innerHTML = `
-                        <h3 class="font-bold text-lg">${name}</h3>
-                        <p class="text-sm text-gray-600">${food.calories} kcal &bull; P: ${food.protein}g &bull; C: ${food.carbs}g</p>
-                        <button class="add-food-btn btn-secondary text-sm mt-4 w-full" data-name="${name}">Add to Log</button>
-                    `;
-                    foodResultsContainer.appendChild(card);
-                });
-        }
-
-        function renderBudgetPage() {
-            if (!state.user) return;
-            const { start, end } = getWeekRange(new Date());
-
-            const expensesThisWeek = (state.expenses || []).filter(exp => {
-                const expDate = new Date(exp.date);
-                return expDate >= start && expDate <= end;
-            });
-            
-            const spent = expensesThisWeek.reduce((total, exp) => total + exp.amount, 0);
-            const remaining = state.user.budget - spent;
-
-            document.getElementById('budget-goal').textContent = `${state.user.budget} ${state.user.currency}`;
-            document.getElementById('budget-spent').textContent = `${spent.toFixed(2)} ${state.user.currency}`;
-            document.getElementById('budget-remaining').textContent = `${remaining.toFixed(2)} ${state.user.currency}`;
-
-            expenseHistoryContainer.innerHTML = '';
-            if (expensesThisWeek.length > 0) {
-                 const sortedExpenses = [...expensesThisWeek].sort((a,b) => new Date(b.date) - new Date(a.date));
-                sortedExpenses.forEach(exp => {
-                    const li = document.createElement('li');
-                    li.className = 'flex justify-between items-center text-sm p-3 bg-gray-50 rounded-md';
-                    li.innerHTML = `
-                        <div>
-                            <p class="font-semibold">${exp.description}</p>
-                            <p class="text-xs text-gray-500">${new Date(exp.date).toLocaleDateString()}</p>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span class="font-semibold">${exp.amount.toFixed(2)} ${state.user.currency}</span>
-                            <button data-id="${exp.id}" class="delete-expense-btn text-red-400 hover:text-red-600 text-xl font-bold">&times;</button>
-                        </div>
-                    `;
-                    expenseHistoryContainer.appendChild(li);
-                });
-            } else {
-                expenseHistoryContainer.innerHTML = `<li class="text-gray-500">No expenses logged this week.</li>`;
+                dayContainer.appendChild(exerciseItem);
             }
-        }
-        
-        function renderProfilePage() {
-            if (!state.user) return;
-            document.getElementById('profile-weight').value = state.user.weight;
-            document.getElementById('profile-height').value = state.user.height;
-            document.getElementById('profile-age').value = state.user.age;
-            
-            const genderSelect = document.getElementById('profile-gender');
-            genderSelect.innerHTML = `<option>Male</option><option>Female</option>`;
-            genderSelect.value = state.user.gender;
 
-            const goalSelect = document.getElementById('profile-goal');
-            goalSelect.innerHTML = `<option value="lose-weight">Lose Weight</option><option value="build-muscle">Build Muscle</option>`;
-            goalSelect.value = state.user.fitnessGoal;
-
-            const locationSelect = document.getElementById('profile-location');
-            locationSelect.innerHTML = `<option value="gym">Gym (with equipment)</option><option value="home">Home (no equipment)</option>`;
-            locationSelect.value = state.user.workoutLocation;
-        }
-
-
-        function renderReportChart() {
-            const ctx = document.getElementById('progress-chart').getContext('2d');
-            const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
-            document.getElementById('report-month-title').textContent = `Progress for ${currentMonthName}`;
-            const labels = (state.progress || []).map(p => new Date(p.date).toLocaleDateString());
-            const data = (state.progress || []).map(p => p.weight);
-
-            if (progressChartInstance) progressChartInstance.destroy();
-
-            progressChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Weight (kg)',
-                        data: data,
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        borderColor: '#10B981',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: false } },
-                    plugins: { legend: { display: false } }
+            function closeBuilderModal() {
+                builderModal.classList.add('hidden');
+                if(exerciseModal.classList.contains('hidden') && addFoodModal.classList.contains('hidden')) {
+                     modalBackdrop.classList.add('hidden');
                 }
-            });
-        }
-        
-        function openExerciseModal(exerciseName) {
-            const exercise = exerciseDatabase[exerciseName];
-            if (!exercise) return;
-
-            document.getElementById('modal-exercise-name').textContent = exerciseName;
-            document.getElementById('modal-exercise-description').textContent = exercise.description;
-            document.getElementById('modal-exercise-muscles').textContent = exercise.targetMuscles;
-            
-            const tipsList = document.getElementById('modal-exercise-tips');
-            tipsList.innerHTML = '';
-            exercise.tips.forEach(tip => {
-                const li = document.createElement('li');
-                li.textContent = tip;
-                tipsList.appendChild(li);
-            });
-            
-            document.getElementById('modal-exercise-svg').innerHTML = `<p class="text-gray-400">Exercise illustration not available</p>`;
-            
-            modalBackdrop.classList.remove('hidden');
-            exerciseModal.classList.remove('hidden');
-        }
-
-        function closeExerciseModal() {
-            exerciseModal.classList.add('hidden');
-            if(builderModal.classList.contains('hidden') && addFoodModal.classList.contains('hidden')) {
-                 modalBackdrop.classList.add('hidden');
+                editingRoutineId = null;
             }
-        }
-        
-        function openAddFoodModal() {
-            if (!state.foodToAdd) return;
-            document.getElementById('add-food-modal-food-name-span').textContent = state.foodToAdd.name;
-            modalBackdrop.classList.remove('hidden');
-            addFoodModal.classList.remove('hidden');
-        }
-
-        function closeAddFoodModal() {
-            state.foodToAdd = null;
-            addFoodModal.classList.add('hidden');
-            if(builderModal.classList.contains('hidden') && exerciseModal.classList.contains('hidden')) {
-                 modalBackdrop.classList.add('hidden');
-            }
-        }
-        
-        function openBuilderModal(routineId = null) {
-            editingRoutineId = routineId;
-            const title = document.getElementById('builder-modal-title');
-            const nameInput = document.getElementById('builder-routine-name');
-            const daysContainer = document.getElementById('builder-days-container');
-            daysContainer.innerHTML = ''; // Clear previous content
-
-            const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-            let routine = null;
-
-            if (routineId) {
-                title.textContent = 'Edit Routine';
-                routine = state.customWorkouts.find(r => r.id === routineId);
-                nameInput.value = routine.name;
-            } else {
-                title.textContent = 'Create New Routine';
-                nameInput.value = '';
+            
+            function closeAllModals() {
+                closeExerciseModal();
+                closeAddFoodModal();
+                closeBuilderModal();
             }
 
-            daysOfWeek.forEach(day => {
-                const dayExercises = (routine && routine.plan[day]) ? routine.plan[day].exercises : [];
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'builder-day card p-4';
-                dayDiv.dataset.day = day;
-                let exercisesHTML = '';
-                dayExercises.forEach(ex => {
-                    exercisesHTML += `
-                         <div class="builder-exercise-item flex items-center gap-2 mb-2" data-name="${ex.name}">
-                            <p class="flex-1 font-semibold">${ex.name}</p>
-                            <input type="text" value="${ex.sets}" placeholder="Sets x Reps" class="w-24 border-gray-300 rounded-md shadow-sm text-sm">
-                            <button type="button" class="builder-remove-exercise-btn text-red-500 hover:text-red-700">&times;</button>
-                        </div>
-                    `;
-                });
+            // --- Helper & Generation Functions ---
+            function getWeekRange(date) {
+                const start = new Date(date);
+                const day = start.getDay();
+                const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+                start.setDate(diff);
+                start.setHours(0, 0, 0, 0);
 
-                dayDiv.innerHTML = `
-                    <h4 class="font-bold border-b pb-2 mb-3">${day}</h4>
-                    <div class="builder-exercise-list space-y-2">${exercisesHTML}</div>
-                    <button type="button" data-day="${day}" class="builder-add-exercise-btn btn-secondary text-sm mt-3 w-full">Add Exercise</button>
-                `;
-                daysContainer.appendChild(dayDiv);
-            });
-
-            modalBackdrop.classList.remove('hidden');
-            builderModal.classList.remove('hidden');
-        }
-
-        function addExerciseToBuilderDay(day, exerciseName) {
-            const dayContainer = document.querySelector(`.builder-day[data-day="${day}"] .builder-exercise-list`);
-            const exerciseItem = document.createElement('div');
-            exerciseItem.className = 'builder-exercise-item flex items-center gap-2 mb-2';
-            exerciseItem.dataset.name = exerciseName;
-            exerciseItem.innerHTML = `
-                <p class="flex-1 font-semibold">${exerciseName}</p>
-                <input type="text" placeholder="Sets x Reps" class="w-24 border-gray-300 rounded-md shadow-sm text-sm">
-                <button type="button" class="builder-remove-exercise-btn text-red-500 hover:text-red-700 font-bold text-xl">&times;</button>
-            `;
-            dayContainer.appendChild(exerciseItem);
-        }
-
-        function closeBuilderModal() {
-            builderModal.classList.add('hidden');
-            if(exerciseModal.classList.contains('hidden') && addFoodModal.classList.contains('hidden')) {
-                 modalBackdrop.classList.add('hidden');
-            }
-            editingRoutineId = null;
-        }
-        
-        function closeAllModals() {
-            closeExerciseModal();
-            closeAddFoodModal();
-            closeBuilderModal();
-        }
-
-        // --- Helper & Generation Functions ---
-        function getWeekRange(date) {
-            const start = new Date(date);
-            const day = start.getDay();
-            const diff = start.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-            start.setDate(diff);
-            start.setHours(0, 0, 0, 0);
-
-            const end = new Date(start);
-            end.setDate(start.getDate() + 6);
-            end.setHours(23, 59, 59, 999);
-            
-            return { start, end };
-        }
-
-        async function addMealToState(mealData) {
-            if (!mealData.name || isNaN(mealData.calories) || mealData.calories <= 0) {
-                return;
+                const end = new Date(start);
+                end.setDate(start.getDate() + 6);
+                end.setHours(23, 59, 59, 999);
+                
+                return { start, end };
             }
 
-            const today = new Date().toISOString().split('T')[0];
-            if (!state.meals) state.meals = {};
-            if (!state.meals[today]) state.meals[today] = [];
-
-            state.meals[today].push({
-                id: Date.now(),
-                name: mealData.name,
-                calories: mealData.calories,
-                protein: mealData.protein || 0,
-                carbs: mealData.carbs || 0,
-                type: mealData.type
-            });
-            
-            await saveState();
-            renderDailyMeals();
-            updateDashboard();
-        }
-
-        function generateWorkoutPlan() {
-            if(!state.user) return;
-            const goal = state.user.fitnessGoal;
-            const location = state.user.workoutLocation;
-            const plan = {};
-
-            const exercises = {
-                gym: {
-                    push: [{ name: "Bench Press", sets: "4 sets of 8-12 reps" }, { name: "Overhead Press", sets: "3 sets of 10-15 reps" }, { name: "Tricep Pushdowns", sets: "3 sets of 12-15 reps" }],
-                    pull: [{ name: "Lat Pulldowns", sets: "4 sets of 8-12 reps" }, { name: "Bent-Over Rows", sets: "4 sets of 8-12 reps" }, { name: "Bicep Curls", sets: "3 sets of 12-15 reps" }],
-                    legs: [{ name: "Squats", sets: "4 sets of 8-12 reps" }, { name: "Leg Press", sets: "3 sets of 10-15 reps" }, { name: "Hamstring Curls", sets: "3 sets of 12-15 reps" }],
-                    fullBody: [{ name: "Squats", sets: "3 sets of 15 reps" }, { name: "Incline Dumbbell Press", sets: "3 sets of 15 reps" }, { name: "Lat Pulldowns", sets: "3 sets of 15 reps" }, { name: "Plank", sets: "3 sets, 60s hold" }]
-                },
-                home: {
-                    push: [{ name: "Push-ups", sets: "4 sets to failure" }, { name: "Pike Push-ups", sets: "3 sets of 10-15 reps" }, { name: "Dips", sets: "3 sets to failure" }],
-                    pull: [{ name: "Pull-ups", sets: "4 sets to failure" }, { name: "Bodyweight Rows", sets: "4 sets of 15 reps" }, { name: "Supermans", sets: "3 sets of 20 reps" }],
-                    legs: [{ name: "Bodyweight Squats", sets: "4 sets of 20-30 reps" }, { name: "Lunges", sets: "3 sets of 15 reps per leg" }, { name: "Glute Bridges", sets: "3 sets of 20 reps" }],
-                    fullBody: [{ name: "Burpees", sets: "3 sets of 10-15 reps" }, { name: "Jumping Jacks", sets: "3 sets, 60s" }, { name: "Mountain Climbers", sets: "3 sets, 60s" }, { name: "Squat Jumps", sets: "3 sets of 15-20 reps" }]
+            function addMealToState(mealData) {
+                if (!mealData.name || isNaN(mealData.calories) || mealData.calories <= 0) {
+                    return;
                 }
-            };
-            
-            if (goal === 'build-muscle') {
-                plan.Monday = { title: "Push Day (Chest, Shoulders, Triceps)", exercises: exercises[location].push };
-                plan.Tuesday = { title: "Pull Day (Back, Biceps)", exercises: exercises[location].pull };
-                plan.Wednesday = { title: "Rest Day", exercises: [] };
-                plan.Thursday = { title: "Leg Day", exercises: exercises[location].legs };
-                plan.Friday = { title: "Push Day 2", exercises: exercises[location].push };
-                plan.Saturday = { title: "Pull Day 2", exercises: exercises[location].pull };
-                plan.Sunday = { title: "Rest Day", exercises: [] };
-            } else { // lose-weight
-                plan.Monday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
-                plan.Tuesday = { title: "Cardio / Active Recovery", exercises: [{ name: "Jumping Jacks", sets: "30 minutes" }] };
-                plan.Wednesday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
-                plan.Thursday = { title: "Cardio / Active Recovery", exercises: [{ name: "Mountain Climbers", sets: "30 minutes" }] };
-                plan.Friday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
-                plan.Saturday = { title: "Light Activity", exercises: [{ name: "30-45 min walk, jog, or cycle", sets: "" }] };
-                plan.Sunday = { title: "Rest Day", exercises: [] };
+
+                const today = new Date().toISOString().split('T')[0];
+                if (!state.meals) state.meals = {};
+                if (!state.meals[today]) state.meals[today] = [];
+
+                state.meals[today].push({
+                    id: Date.now(),
+                    name: mealData.name,
+                    calories: mealData.calories,
+                    protein: mealData.protein || 0,
+                    carbs: mealData.carbs || 0,
+                    type: mealData.type
+                });
+                
+                saveState();
+                renderDailyMeals();
+                updateDashboard();
             }
 
-            state.workoutPlan = plan;
-        }
+            function generateWorkoutPlan() {
+                if(!state.user) return;
+                const goal = state.user.fitnessGoal;
+                const location = state.user.workoutLocation;
+                const plan = {};
 
-        function calculateMacroGoals() {
-            if (!state.user) return { calories: 2000, protein: 150, carbs: 250 };
-            const { weight, height, age, gender, fitnessGoal } = state.user;
-            
-            // 1. Calculate BMR (Basal Metabolic Rate)
-            let bmr = (gender === 'Male') ? (10 * weight + 6.25 * height - 5 * age + 5) : (10 * weight + 6.25 * height - 5 * age - 161);
-            
-            // 2. Adjust for activity level (TDEE - Total Daily Energy Expenditure)
-            const tdee = bmr * 1.375; // Assuming light activity
-            
-            // 3. Adjust for fitness goal
-            const calorieGoal = fitnessGoal === 'build-muscle' ? tdee + 300 : tdee - 500;
-            
-            // 4. Calculate Macros
-            const proteinGoal = Math.round(weight * 1.8); // 1.8g of protein per kg of bodyweight
-            const fatCalories = calorieGoal * 0.25; // 25% of calories from fat
-            const proteinCalories = proteinGoal * 4;
-            const carbCalories = calorieGoal - proteinCalories - fatCalories;
-            const carbGoal = Math.round(carbCalories / 4);
+                const exercises = {
+                    gym: {
+                        push: [{ name: "Bench Press", sets: "4 sets of 8-12 reps" }, { name: "Overhead Press", sets: "3 sets of 10-15 reps" }, { name: "Tricep Pushdowns", sets: "3 sets of 12-15 reps" }],
+                        pull: [{ name: "Lat Pulldowns", sets: "4 sets of 8-12 reps" }, { name: "Bent-Over Rows", sets: "4 sets of 8-12 reps" }, { name: "Bicep Curls", sets: "3 sets of 12-15 reps" }],
+                        legs: [{ name: "Squats", sets: "4 sets of 8-12 reps" }, { name: "Leg Press", sets: "3 sets of 10-15 reps" }, { name: "Hamstring Curls", sets: "3 sets of 12-15 reps" }],
+                        fullBody: [{ name: "Squats", sets: "3 sets of 15 reps" }, { name: "Incline Dumbbell Press", sets: "3 sets of 15 reps" }, { name: "Lat Pulldowns", sets: "3 sets of 15 reps" }, { name: "Plank", sets: "3 sets, 60s hold" }]
+                    },
+                    home: {
+                        push: [{ name: "Push-ups", sets: "4 sets to failure" }, { name: "Pike Push-ups", sets: "3 sets of 10-15 reps" }, { name: "Dips", sets: "3 sets to failure" }],
+                        pull: [{ name: "Pull-ups", sets: "4 sets to failure" }, { name: "Bodyweight Rows", sets: "4 sets of 15 reps" }, { name: "Supermans", sets: "3 sets of 20 reps" }],
+                        legs: [{ name: "Bodyweight Squats", sets: "4 sets of 20-30 reps" }, { name: "Lunges", sets: "3 sets of 15 reps per leg" }, { name: "Glute Bridges", sets: "3 sets of 20 reps" }],
+                        fullBody: [{ name: "Burpees", sets: "3 sets of 10-15 reps" }, { name: "Jumping Jacks", sets: "3 sets, 60s" }, { name: "Mountain Climbers", sets: "3 sets, 60s" }, { name: "Squat Jumps", sets: "3 sets of 15-20 reps" }]
+                    }
+                };
+                
+                if (goal === 'build-muscle') {
+                    plan.Monday = { title: "Push Day (Chest, Shoulders, Triceps)", exercises: exercises[location].push };
+                    plan.Tuesday = { title: "Pull Day (Back, Biceps)", exercises: exercises[location].pull };
+                    plan.Wednesday = { title: "Rest Day", exercises: [] };
+                    plan.Thursday = { title: "Leg Day", exercises: exercises[location].legs };
+                    plan.Friday = { title: "Push Day 2", exercises: exercises[location].push };
+                    plan.Saturday = { title: "Pull Day 2", exercises: exercises[location].pull };
+                    plan.Sunday = { title: "Rest Day", exercises: [] };
+                } else { // lose-weight
+                    plan.Monday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
+                    plan.Tuesday = { title: "Cardio / Active Recovery", exercises: [{ name: "Jumping Jacks", sets: "30 minutes" }] };
+                    plan.Wednesday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
+                    plan.Thursday = { title: "Cardio / Active Recovery", exercises: [{ name: "Mountain Climbers", sets: "30 minutes" }] };
+                    plan.Friday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
+                    plan.Saturday = { title: "Light Activity", exercises: [{ name: "30-45 min walk, jog, or cycle", sets: "" }] };
+                    plan.Sunday = { title: "Rest Day", exercises: [] };
+                }
 
+                state.workoutPlan = plan;
+            }
+
+            function calculateMacroGoals() {
+                if (!state.user) return { calories: 2000, protein: 150, carbs: 250 };
+                const { weight, height, age, gender, fitnessGoal } = state.user;
+                
+                // 1. Calculate BMR (Basal Metabolic Rate)
+                let bmr = (gender === 'Male') ? (10 * weight + 6.25 * height - 5 * age + 5) : (10 * weight + 6.25 * height - 5 * age - 161);
+                
+                // 2. Adjust for activity level (TDEE - Total Daily Energy Expenditure)
+                const tdee = bmr * 1.375; // Assuming light activity
+                
+                // 3. Adjust for fitness goal
+                const calorieGoal = fitnessGoal === 'build-muscle' ? tdee + 300 : tdee - 500;
+                
+                // 4. Calculate Macros
+                const proteinGoal = Math.round(weight * 1.8); // 1.8g of protein per kg of bodyweight
+                const fatCalories = calorieGoal * 0.25; // 25% of calories from fat
+                const proteinCalories = proteinGoal * 4;
+                const carbCalories = calorieGoal - proteinCalories - fatCalories;
+                const carbGoal = Math.round(carbCalories / 4);
+
+                return {
+                    calories: Math.round(calorieGoal),
+                    protein: proteinGoal,
+                    carbs: carbGoal
+                };
+            }
+
+            // --- Public API ---
             return {
-                calories: Math.round(calorieGoal),
-                protein: proteinGoal,
-                carbs: carbGoal
+                init,
+                showPage,
             };
-        }
+        })();
 
-        // --- Public API ---
-        return {
-            init,
-            showPage,
-        };
-    })();
-
-    // Start the application
-    document.addEventListener('DOMContentLoaded', app.init);
+        // Start the application
+        document.addEventListener('DOMContentLoaded', app.init);
     </script>
 </body>
 </html>
-
 
