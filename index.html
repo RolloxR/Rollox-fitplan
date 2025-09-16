@@ -5,63 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FitPlan - Your Personal Diet & Fitness Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7fafc;
         }
         .card {
             background-color: white;
             border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
             transition: all 0.3s ease-in-out;
         }
         .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
         }
         .nav-item {
             cursor: pointer;
-            padding: 0.75rem 1rem;
+            padding: 1rem 1.5rem;
             border-radius: 0.5rem;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
             font-weight: 500;
         }
         .nav-item.active {
             background-color: #10B981; /* Emerald-500 */
             color: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
         .nav-item:not(.active):hover {
-            background-color: #D1FAE5; /* Emerald-100 */
+            background-color: #EDF2F7; /* Gray-200 */
+            color: #2D3748; /* Gray-800 */
         }
         .btn-primary {
             background-color: #10B981;
             color: white;
             font-weight: 600;
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 2rem;
             border-radius: 0.5rem;
-            transition: background-color 0.2s;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            transition: all 0.2s ease-in-out;
         }
         .btn-primary:hover {
             background-color: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgb(50 50 93 / 10%), 0 3px 6px rgb(0 0 0 / 8%);
         }
         .btn-secondary {
-            background-color: #f3f4f6;
-            color: #374151;
+            background-color: #f7fafc;
+            color: #4a5568;
             font-weight: 600;
             padding: 0.5rem 1rem;
             border-radius: 0.5rem;
-            border: 1px solid #d1d5db;
-            transition: background-color 0.2s;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
         }
         .btn-secondary:hover {
-            background-color: #e5e7eb;
+            background-color: #e2e8f0;
+            border-color: #cbd5e0;
         }
         .btn-secondary-complete {
             background-color: #10b981;
             color: white;
+            border-color: #10b981;
         }
 
         .exercise-link {
@@ -85,13 +95,19 @@
             -ms-overflow-style: none;  /* IE and Edge */
             scrollbar-width: none;  /* Firefox */
         }
+        
+        @media (max-width: 768px) {
+            .page-content h1 {
+                font-size: 1.875rem; /* 3xl */
+            }
+        }
     </style>
 </head>
 <body class="antialiased text-slate-700">
 
     <!-- Onboarding / Initial Setup Page -->
     <div id="setup-page" class="min-h-screen flex items-center justify-center p-4 bg-emerald-500">
-        <div class="max-w-xl w-full mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-xl">
+        <div class="max-w-2xl w-full mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-xl">
             <div class="text-center">
                 <svg class="mx-auto h-12 w-auto text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 100 15 7.5 7.5 0 000-15z" />
@@ -163,9 +179,10 @@
 
     <!-- Main Application Interface -->
     <div id="app-container" class="hidden">
-        <div class="flex h-screen bg-gray-100">
+        <div class="relative flex min-h-screen bg-gray-100">
+            <div id="menu-overlay" class="md:hidden hidden fixed inset-0 bg-black bg-opacity-50 z-20"></div>
             <!-- Sidebar Navigation -->
-            <aside class="w-64 bg-white shadow-md flex-shrink-0">
+            <aside id="sidebar" class="absolute md:relative inset-y-0 left-0 z-30 w-72 bg-white shadow-lg flex-shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
                 <div class="p-6 text-center border-b">
                      <h1 class="text-2xl font-bold text-emerald-500">FitPlan</h1>
                 </div>
@@ -224,290 +241,302 @@
             </aside>
 
             <!-- Main Content Area -->
-            <main class="flex-1 p-6 md:p-10 overflow-y-auto no-scrollbar">
-                
-                <button id="back-button" class="hidden mb-4 inline-flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-sm transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back
-                </button>
+            <div class="flex-1 flex flex-col">
+                <!-- Mobile Header -->
+                <header class="md:hidden bg-white shadow-md p-4 flex justify-between items-center w-full">
+                     <h1 class="text-xl font-bold text-emerald-500">FitPlan</h1>
+                     <button id="menu-toggle-btn" class="p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                     </button>
+                </header>
 
-                <!-- Dashboard Page -->
-                <div id="dashboard-page" class="page-content">
-                    <h1 class="text-4xl font-bold text-gray-800">Dashboard</h1>
-                    <p class="text-gray-500 mt-2">Here's a summary of your plan for today.</p>
+                <main class="flex-1 p-4 md:p-10 overflow-y-auto no-scrollbar">
+                    <div class="max-w-7xl mx-auto">
+                        <button id="back-button" class="hidden mb-4 inline-flex items-center gap-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg text-sm transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back
+                        </button>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                        <!-- Calorie Tracker -->
-                        <div class="card p-6 flex flex-col justify-center text-center">
-                            <h3 class="text-lg font-semibold text-gray-700">Calorie Tracker</h3>
-                            <div class="mt-2">
-                                <span id="dashboard-calories-consumed" class="text-5xl font-bold text-emerald-500">0</span>
-                                <span class="text-2xl font-semibold text-gray-400">/</span>
-                                <span id="dashboard-calorie-goal" class="text-3xl font-bold text-gray-500">2,200</span>
-                            </div>
-                            <p class="text-gray-500">Consumed / Goal (kcal)</p>
-                        </div>
-                        <!-- Current Weight -->
-                        <div class="card p-6 flex flex-col items-center justify-center text-center">
-                            <h3 class="text-lg font-semibold text-gray-700">Current Weight</h3>
-                            <p id="dashboard-current-weight" class="text-5xl font-bold text-blue-500 mt-2">75</p>
-                            <p class="text-gray-500">kg</p>
-                        </div>
-                        <!-- Quick Actions -->
-                        <div class="card p-6">
-                            <h3 class="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h3>
-                            <div class="space-y-3">
-                                <button onclick="app.showPage('diet-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Log a Meal</button>
-                                <button onclick="app.showPage('fitness-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">View Workouts</button>
-                                <button onclick="app.showPage('progress-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Update Progress</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        <!-- Dashboard Page -->
+                        <div id="dashboard-page" class="page-content">
+                            <h1 class="text-4xl font-bold text-gray-800">Dashboard</h1>
+                            <p class="text-gray-500 mt-2">Here's a summary of your plan for today.</p>
 
-                <!-- Diet Page -->
-                <div id="diet-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Today's Dietary Log</h1>
-                    <p class="text-gray-500 mt-2">Add your meals to track your calorie and macronutrient intake.</p>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                        <!-- Add Meal Form -->
-                        <div class="lg:col-span-1">
-                            <div class="card p-6">
-                                <h2 class="text-xl font-semibold mb-4">Add New Meal</h2>
-                                <form id="add-meal-form" class="space-y-4">
-                                    <div>
-                                        <label for="meal-name" class="block text-sm font-medium">Meal Name</label>
-                                        <input type="text" id="meal-name" placeholder="e.g., Grilled Chicken Salad" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                                <!-- Calorie Tracker -->
+                                <div class="card p-6 flex flex-col justify-center text-center">
+                                    <h3 class="text-lg font-semibold text-gray-700">Calorie Tracker</h3>
+                                    <div class="mt-2">
+                                        <span id="dashboard-calories-consumed" class="text-5xl font-bold text-emerald-500">0</span>
+                                        <span class="text-2xl font-semibold text-gray-400">/</span>
+                                        <span id="dashboard-calorie-goal" class="text-3xl font-bold text-gray-500">2,200</span>
                                     </div>
-                                    <div class="grid grid-cols-3 gap-4">
-                                        <div>
-                                            <label for="meal-calories" class="block text-sm font-medium">Calories</label>
-                                            <input type="number" id="meal-calories" placeholder="kcal" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                                        </div>
-                                        <div>
-                                            <label for="meal-protein" class="block text-sm font-medium">Protein</label>
-                                            <input type="number" id="meal-protein" placeholder="g" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
-                                        </div>
-                                         <div>
-                                            <label for="meal-carbs" class="block text-sm font-medium">Carbs</label>
-                                            <input type="number" id="meal-carbs" placeholder="g" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label for="meal-type" class="block text-sm font-medium">Meal Type</label>
-                                        <select id="meal-type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
-                                            <option>Breakfast</option>
-                                            <option>Lunch</option>
-                                            <option>Dinner</option>
-                                            <option>Snack</option>
-                                        </select>
-                                    </div>
-                                    <button type="submit" class="w-full btn-primary">Add Meal</button>
-                                </form>
-                            </div>
-                        </div>
-
-                        <!-- Meal Log -->
-                        <div class="lg:col-span-2">
-                            <div class="card p-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h2 class="text-xl font-semibold">Today's Summary</h2>
-                                    <div class="text-right">
-                                        <p class="text-2xl font-bold text-gray-800">
-                                            <span id="summary-calories-consumed">0</span> / <span id="summary-calorie-goal" class="text-gray-500">2200</span> kcal
-                                        </p>
-                                        <p class="text-sm text-gray-500">
-                                            P: <span id="summary-protein">0</span>g C: <span id="summary-carbs">0</span>g
-                                        </p>
-                                    </div>
+                                    <p class="text-gray-500">Consumed / Goal (kcal)</p>
                                 </div>
-                                
-                                <div id="meal-log-container" class="space-y-6">
-                                    <!-- Meal sections will be dynamically generated here -->
+                                <!-- Current Weight -->
+                                <div class="card p-6 flex flex-col items-center justify-center text-center">
+                                    <h3 class="text-lg font-semibold text-gray-700">Current Weight</h3>
+                                    <p id="dashboard-current-weight" class="text-5xl font-bold text-blue-500 mt-2">75</p>
+                                    <p class="text-gray-500">kg</p>
+                                </div>
+                                <!-- Quick Actions -->
+                                <div class="card p-6">
+                                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h3>
+                                    <div class="space-y-3">
+                                        <button onclick="app.showPage('diet-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Log a Meal</button>
+                                        <button onclick="app.showPage('fitness-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">View Workouts</button>
+                                        <button onclick="app.showPage('progress-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Update Progress</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Food Finder Page -->
-                <div id="food-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Food Finder</h1>
-                    <p class="text-gray-500 mt-2">Search for common food items to quickly log their nutritional info.</p>
-                     <div class="mt-6">
-                        <input type="text" id="food-search" placeholder="Search for a food..." class="w-full max-w-lg p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
-                    </div>
-                    <div id="food-results-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        <!-- Food items will be generated here -->
-                    </div>
-                </div>
-
-                <!-- Budget Tracker Page -->
-                <div id="budget-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Weekly Budget Tracker</h1>
-                    <p class="text-gray-500 mt-2">Log your food-related expenses to stay on track.</p>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                        <div class="card p-6 text-center">
-                            <h3 class="text-lg font-semibold text-gray-700">Weekly Goal</h3>
-                            <p class="text-5xl font-bold text-blue-500 mt-2" id="budget-goal">150</p>
-                        </div>
-                         <div class="card p-6 text-center">
-                            <h3 class="text-lg font-semibold text-gray-700">Spent This Week</h3>
-                            <p class="text-5xl font-bold text-red-500 mt-2" id="budget-spent">0</p>
-                        </div>
-                         <div class="card p-6 text-center">
-                            <h3 class="text-lg font-semibold text-gray-700">Remaining</h3>
-                            <p class="text-5xl font-bold text-emerald-500 mt-2" id="budget-remaining">150</p>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                        <div class="lg:col-span-1">
-                             <div class="card p-6">
-                                <h2 class="text-xl font-semibold mb-4">Add New Expense</h2>
-                                <form id="add-expense-form" class="space-y-4">
-                                    <div>
-                                        <label for="expense-desc" class="block text-sm font-medium">Description</label>
-                                        <input type="text" id="expense-desc" placeholder="e.g., Groceries" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                        <!-- Diet Page -->
+                        <div id="diet-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Today's Dietary Log</h1>
+                            <p class="text-gray-500 mt-2">Add your meals to track your calorie and macronutrient intake.</p>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                                <!-- Add Meal Form -->
+                                <div class="lg:col-span-1">
+                                    <div class="card p-6">
+                                        <h2 class="text-xl font-semibold mb-4">Add New Meal</h2>
+                                        <form id="add-meal-form" class="space-y-4">
+                                            <div>
+                                                <label for="meal-name" class="block text-sm font-medium">Meal Name</label>
+                                                <input type="text" id="meal-name" placeholder="e.g., Grilled Chicken Salad" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                            </div>
+                                            <div class="grid grid-cols-3 gap-4">
+                                                <div>
+                                                    <label for="meal-calories" class="block text-sm font-medium">Calories</label>
+                                                    <input type="number" id="meal-calories" placeholder="kcal" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                                </div>
+                                                <div>
+                                                    <label for="meal-protein" class="block text-sm font-medium">Protein</label>
+                                                    <input type="number" id="meal-protein" placeholder="g" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                                                </div>
+                                                 <div>
+                                                    <label for="meal-carbs" class="block text-sm font-medium">Carbs</label>
+                                                    <input type="number" id="meal-carbs" placeholder="g" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label for="meal-type" class="block text-sm font-medium">Meal Type</label>
+                                                <select id="meal-type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                                                    <option>Breakfast</option>
+                                                    <option>Lunch</option>
+                                                    <option>Dinner</option>
+                                                    <option>Snack</option>
+                                                </select>
+                                            </div>
+                                            <button type="submit" class="w-full btn-primary">Add Meal</button>
+                                        </form>
                                     </div>
-                                    <div>
-                                        <label for="expense-amount" class="block text-sm font-medium">Amount</label>
-                                        <input type="number" id="expense-amount" step="0.01" placeholder="25.50" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                </div>
+
+                                <!-- Meal Log -->
+                                <div class="lg:col-span-2">
+                                    <div class="card p-6">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h2 class="text-xl font-semibold">Today's Summary</h2>
+                                            <div class="text-right">
+                                                <p class="text-2xl font-bold text-gray-800">
+                                                    <span id="summary-calories-consumed">0</span> / <span id="summary-calorie-goal" class="text-gray-500">2200</span> kcal
+                                                </p>
+                                                <p class="text-sm text-gray-500">
+                                                    P: <span id="summary-protein">0</span>g C: <span id="summary-carbs">0</span>g
+                                                </p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div id="meal-log-container" class="space-y-6">
+                                            <!-- Meal sections will be dynamically generated here -->
+                                        </div>
                                     </div>
-                                    <button type="submit" class="w-full btn-primary">Add Expense</button>
-                                </form>
+                                </div>
                             </div>
                         </div>
-                         <div class="lg:col-span-2">
-                             <div class="card p-6">
-                                <h2 class="text-xl font-semibold mb-4">This Week's Expenses</h2>
-                                <ul id="expense-history" class="space-y-3">
-                                   <li class="text-gray-500">No expenses logged this week.</li>
+
+                        <!-- Food Finder Page -->
+                        <div id="food-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Food Finder</h1>
+                            <p class="text-gray-500 mt-2">Search for common food items to quickly log their nutritional info.</p>
+                             <div class="mt-6">
+                                <input type="text" id="food-search" placeholder="Search for a food..." class="w-full max-w-lg p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                            </div>
+                            <div id="food-results-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                <!-- Food items will be generated here -->
+                            </div>
+                        </div>
+
+                        <!-- Budget Tracker Page -->
+                        <div id="budget-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Weekly Budget Tracker</h1>
+                            <p class="text-gray-500 mt-2">Log your food-related expenses to stay on track.</p>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                                <div class="card p-6 text-center">
+                                    <h3 class="text-lg font-semibold text-gray-700">Weekly Goal</h3>
+                                    <p class="text-5xl font-bold text-blue-500 mt-2" id="budget-goal">150</p>
+                                </div>
+                                 <div class="card p-6 text-center">
+                                    <h3 class="text-lg font-semibold text-gray-700">Spent This Week</h3>
+                                    <p class="text-5xl font-bold text-red-500 mt-2" id="budget-spent">0</p>
+                                </div>
+                                 <div class="card p-6 text-center">
+                                    <h3 class="text-lg font-semibold text-gray-700">Remaining</h3>
+                                    <p class="text-5xl font-bold text-emerald-500 mt-2" id="budget-remaining">150</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+                                <div class="lg:col-span-1">
+                                     <div class="card p-6">
+                                        <h2 class="text-xl font-semibold mb-4">Add New Expense</h2>
+                                        <form id="add-expense-form" class="space-y-4">
+                                            <div>
+                                                <label for="expense-desc" class="block text-sm font-medium">Description</label>
+                                                <input type="text" id="expense-desc" placeholder="e.g., Groceries" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                            </div>
+                                            <div>
+                                                <label for="expense-amount" class="block text-sm font-medium">Amount</label>
+                                                <input type="number" id="expense-amount" step="0.01" placeholder="25.50" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                            </div>
+                                            <button type="submit" class="w-full btn-primary">Add Expense</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                 <div class="lg:col-span-2">
+                                     <div class="card p-6">
+                                        <h2 class="text-xl font-semibold mb-4">This Week's Expenses</h2>
+                                        <ul id="expense-history" class="space-y-3">
+                                           <li class="text-gray-500">No expenses logged this week.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Fitness Page -->
+                        <div id="fitness-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Your Weekly Fitness Schedule</h1>
+                            <p class="text-gray-500 mt-2">Click any exercise to see instructions. Mark workouts as complete to stay on track.</p>
+                            <div id="workout-plan-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <!-- Workout plan will be generated here by JS -->
+                            </div>
+                        </div>
+
+                         <!-- Exercise Library Page -->
+                        <div id="library-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Exercise Library</h1>
+                            <p class="text-gray-500 mt-2">Browse exercises to learn proper form and technique.</p>
+                            <div class="mt-6">
+                                <input type="text" id="library-search" placeholder="Search for an exercise..." class="w-full max-w-lg p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
+                            </div>
+                            <div id="library-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                <!-- Library items will be generated here -->
+                            </div>
+                        </div>
+
+
+                        <!-- Progress Page -->
+                        <div id="progress-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Progress Tracker</h1>
+                            <p class="text-gray-500 mt-2">Log your weight and see your progress over time.</p>
+                             <div class="card p-6 mt-8">
+                                <h2 class="text-xl font-semibold mb-4">Log New Entry</h2>
+                                <form id="progress-form" class="flex flex-wrap items-end gap-4">
+                                    <div>
+                                        <label for="progress-weight" class="block text-sm font-medium">Weight (kg)</label>
+                                        <input type="number" step="0.1" id="progress-weight" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                    </div>
+                                     <button type="submit" class="btn-primary">Save Progress</button>
+                                </form>
+                            </div>
+
+                            <div class="card p-6 mt-8">
+                                <h2 class="text-xl font-semibold mb-4">History</h2>
+                                <ul id="progress-history" class="space-y-2">
+                                   <!-- JS will populate this -->
+                                   <li class="text-gray-500">No entries yet.</li>
                                 </ul>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-
-                <!-- Fitness Page -->
-                <div id="fitness-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Your Weekly Fitness Schedule</h1>
-                    <p class="text-gray-500 mt-2">Click any exercise to see instructions. Mark workouts as complete to stay on track.</p>
-                    <div id="workout-plan-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Workout plan will be generated here by JS -->
-                    </div>
-                </div>
-
-                 <!-- Exercise Library Page -->
-                <div id="library-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Exercise Library</h1>
-                    <p class="text-gray-500 mt-2">Browse exercises to learn proper form and technique.</p>
-                    <div class="mt-6">
-                        <input type="text" id="library-search" placeholder="Search for an exercise..." class="w-full max-w-lg p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500">
-                    </div>
-                    <div id="library-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        <!-- Library items will be generated here -->
-                    </div>
-                </div>
-
-
-                <!-- Progress Page -->
-                <div id="progress-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Progress Tracker</h1>
-                    <p class="text-gray-500 mt-2">Log your weight and see your progress over time.</p>
-                     <div class="card p-6 mt-8">
-                        <h2 class="text-xl font-semibold mb-4">Log New Entry</h2>
-                        <form id="progress-form" class="flex items-end gap-4">
-                            <div>
-                                <label for="progress-weight" class="block text-sm font-medium">Weight (kg)</label>
-                                <input type="number" step="0.1" id="progress-weight" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                        <!-- Report Page -->
+                        <div id="report-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Monthly Report</h1>
+                            <p class="text-gray-500 mt-2">Visualize your progress for the month.</p>
+                             <div class="card p-6 mt-8">
+                                <h2 class="text-xl font-semibold mb-2" id="report-month-title">Progress This Month</h2>
+                                <div class="relative h-96">
+                                    <canvas id="progress-chart"></canvas>
+                                </div>
                             </div>
-                             <button type="submit" class="btn-primary">Save Progress</button>
-                        </form>
-                    </div>
-
-                    <div class="card p-6 mt-8">
-                        <h2 class="text-xl font-semibold mb-4">History</h2>
-                        <ul id="progress-history" class="space-y-2">
-                           <!-- JS will populate this -->
-                           <li class="text-gray-500">No entries yet.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Report Page -->
-                <div id="report-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Monthly Report</h1>
-                    <p class="text-gray-500 mt-2">Visualize your progress for the month.</p>
-                     <div class="card p-6 mt-8">
-                        <h2 class="text-xl font-semibold mb-2" id="report-month-title">Progress This Month</h2>
-                        <canvas id="progress-chart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Stopwatch Page -->
-                <div id="stopwatch-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Stopwatch</h1>
-                    <p class="text-gray-500 mt-2">Time your workouts or rest periods accurately.</p>
-                    <div class="card p-6 mt-8 max-w-lg mx-auto text-center">
-                        <div id="stopwatch-display" class="text-6xl font-mono font-bold text-gray-800 my-8 select-none">
-                            00:00:00.00
                         </div>
-                        <div class="flex justify-center gap-4">
-                            <button id="stopwatch-start-pause" class="btn-primary px-8 py-3 text-lg w-32 transition-colors">Start</button>
-                            <button id="stopwatch-reset" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-8 py-3 text-lg w-32 rounded-md transition-colors">Reset</button>
+
+                        <!-- Stopwatch Page -->
+                        <div id="stopwatch-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Stopwatch</h1>
+                            <p class="text-gray-500 mt-2">Time your workouts or rest periods accurately.</p>
+                            <div class="card p-6 mt-8 max-w-xl mx-auto text-center">
+                                <div id="stopwatch-display" class="text-6xl font-mono font-bold text-gray-800 my-8 select-none">
+                                    00:00:00.00
+                                </div>
+                                <div class="flex justify-center gap-4">
+                                    <button id="stopwatch-start-pause" class="btn-primary px-8 py-3 text-lg w-32 transition-colors">Start</button>
+                                    <button id="stopwatch-reset" class="bg-gray-500 hover:bg-gray-600 text-white font-semibold px-8 py-3 text-lg w-32 rounded-md transition-colors">Reset</button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Profile Page -->
-                <div id="profile-page" class="page-content hidden">
-                    <h1 class="text-4xl font-bold text-gray-800">Profile & Settings</h1>
-                    <p class="text-gray-500 mt-2">Update your personal information and goals.</p>
-                    <div class="card p-6 mt-8 max-w-2xl mx-auto">
-                        <form id="profile-form" class="space-y-6">
-                            <!-- Re-using the same grid layout as the setup form -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label for="profile-weight" class="block text-sm font-medium text-gray-700">Weight (kg)</label>
-                                    <input type="number" id="profile-weight" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                                </div>
-                                <div>
-                                    <label for="profile-height" class="block text-sm font-medium text-gray-700">Height (cm)</label>
-                                    <input type="number" id="profile-height" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                                </div>
-                                <div>
-                                    <label for="profile-age" class="block text-sm font-medium text-gray-700">Age</label>
-                                    <input type="number" id="profile-age" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
-                                </div>
-                                <div>
-                                    <label for="profile-gender" class="block text-sm font-medium text-gray-700">Gender</label>
-                                    <select id="profile-gender" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"></select>
-                                </div>
-                                <div>
-                                    <label for="profile-goal" class="block text-sm font-medium text-gray-700">Primary Goal</label>
-                                    <select id="profile-goal" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"></select>
-                                </div>
-                                <div>
-                                    <label for="profile-location" class="block text-sm font-medium text-gray-700">Workout Location</label>
-                                    <select id="profile-location" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"></select>
-                                </div>
+                        
+                        <!-- Profile Page -->
+                        <div id="profile-page" class="page-content hidden">
+                            <h1 class="text-4xl font-bold text-gray-800">Profile & Settings</h1>
+                            <p class="text-gray-500 mt-2">Update your personal information and goals.</p>
+                            <div class="card p-6 mt-8 max-w-4xl mx-auto">
+                                <form id="profile-form" class="space-y-6">
+                                    <!-- Re-using the same grid layout as the setup form -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label for="profile-weight" class="block text-sm font-medium text-gray-700">Weight (kg)</label>
+                                            <input type="number" id="profile-weight" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                        </div>
+                                        <div>
+                                            <label for="profile-height" class="block text-sm font-medium text-gray-700">Height (cm)</label>
+                                            <input type="number" id="profile-height" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                        </div>
+                                        <div>
+                                            <label for="profile-age" class="block text-sm font-medium text-gray-700">Age</label>
+                                            <input type="number" id="profile-age" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                                        </div>
+                                        <div>
+                                            <label for="profile-gender" class="block text-sm font-medium text-gray-700">Gender</label>
+                                            <select id="profile-gender" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"></select>
+                                        </div>
+                                        <div>
+                                            <label for="profile-goal" class="block text-sm font-medium text-gray-700">Primary Goal</label>
+                                            <select id="profile-goal" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"></select>
+                                        </div>
+                                        <div>
+                                            <label for="profile-location" class="block text-sm font-medium text-gray-700">Workout Location</label>
+                                            <select id="profile-location" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"></select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button type="submit" class="w-full btn-primary">Save Changes</button>
+                                        <p id="profile-success-message" class="text-center text-sm text-green-600 mt-2 hidden">Profile updated successfully!</p>
+                                    </div>
+                                </form>
                             </div>
-                            <div>
-                                <button type="submit" class="w-full btn-primary">Save Changes</button>
-                                <p id="profile-success-message" class="text-center text-sm text-green-600 mt-2 hidden">Profile updated successfully!</p>
-                            </div>
-                        </form>
+                        </div>
+
                     </div>
-                </div>
-
-
-            </main>
+                </main>
+            </div>
         </div>
     </div>
     
@@ -601,6 +630,9 @@
         const libraryContainer = document.getElementById('library-container');
         const foodResultsContainer = document.getElementById('food-results-container');
         const addFoodModal = document.getElementById('add-food-modal');
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const sidebar = document.getElementById('sidebar');
+        const menuOverlay = document.getElementById('menu-overlay');
 
 
         // --- Initialization ---
@@ -638,23 +670,31 @@
             document.getElementById('add-food-modal-cancel-btn').addEventListener('click', closeAddFoodModal);
             document.getElementById('add-expense-form').addEventListener('submit', handleAddExpense);
             expenseHistoryContainer.addEventListener('click', handleDeleteExpense);
+
+            // Mobile menu listeners
+            menuToggleBtn.addEventListener('click', toggleMobileMenu);
+            menuOverlay.addEventListener('click', toggleMobileMenu);
         }
         
         // --- Exercise Database ---
         const exerciseDatabase = {
             'Bench Press': { description: "Lie on a flat bench, holding a barbell with a grip slightly wider than shoulder-width. Lower the bar to your mid-chest, then press it back up to the starting position, fully extending your arms.", targetMuscles: "Chest, Shoulders, Triceps", tips: ["Keep your back flat on the bench.", "Don't bounce the bar off your chest.", "Control the weight on the way down."] },
+            'Incline Dumbbell Press': { description: "Sit on an incline bench holding a dumbbell in each hand. Lie back and press the dumbbells up above your chest. Lower them slowly and with control.", targetMuscles: "Upper Chest, Shoulders", tips: ["Set the bench to a 30-45 degree angle.", "Don't let the dumbbells touch at the top."] },
+            'Cable Flyes': { description: "Stand in the center of a cable machine with pulleys set high. Grab a handle in each hand. With a slight bend in your elbows, bring your hands together in front of your chest.", targetMuscles: "Chest", tips: ["Focus on squeezing the chest muscles.", "Don't use excessively heavy weight."] },
             'Overhead Press': { description: "Stand with the barbell on your front shoulders, hands slightly wider than shoulder-width. Press the bar overhead until your arms are fully extended. Lower it back down with control.", targetMuscles: "Shoulders, Triceps", tips: ["Keep your core tight to avoid arching your back.", "Don't use your legs to push the weight up."] },
+            'Lateral Raises': { description: "Stand holding a dumbbell in each hand at your sides. With a slight bend in your elbows, raise your arms out to the sides until they are parallel with the floor.", targetMuscles: "Shoulders", tips: ["Avoid using momentum to swing the weights up.", "Lead with your elbows."] },
             'Tricep Pushdowns': { description: "Attach a straight or angled bar to a high pulley machine. Grasp the bar with an overhand grip, and with your elbows tucked at your sides, push the bar down until your arms are fully extended.", targetMuscles: "Triceps", tips: ["Only your forearms should move.", "Keep your elbows close to your body."] },
             'Pull-ups': { description: "Grasp a pull-up bar with an overhand grip, slightly wider than your shoulders. Hang with your arms fully extended. Pull your body up until your chin is over the bar. Lower yourself back down with control.", targetMuscles: "Back, Biceps", tips: ["Avoid swinging.", "Focus on squeezing your back muscles."] },
             'Lat Pulldowns': { description: "Sit at a lat pulldown machine and secure your knees. Grasp the bar with a wide grip. Pull the bar down to your upper chest, squeezing your back muscles. Slowly return to the start.", targetMuscles: "Back, Biceps", tips: ["Keep your torso stationary.", "Lead with your elbows."] },
             'Bent-Over Rows': { description: "Hold a barbell with an overhand grip, hands shoulder-width apart. Hinge at your hips until your torso is nearly parallel to the floor. Pull the bar up towards your lower chest. Lower with control.", targetMuscles: "Back, Biceps", tips: ["Keep your back straight.", "Squeeze your shoulder blades together at the top."] },
+            'Deadlifts': { description: "Stand with your mid-foot under a barbell. Hinge at the hips and bend your knees to grip the bar. Keep your back straight, lift your chest, and drive through your heels to stand up, pulling the weight with you.", targetMuscles: "Full Body, Hamstrings, Glutes, Back", tips: ["Maintain a neutral spine throughout the lift.", "Start with a light weight to master the form."] },
             'Bicep Curls': { description: "Stand or sit holding a dumbbell in each hand with an underhand grip. Curl the weights up towards your shoulders, keeping your elbows stationary. Squeeze your biceps at the top, then lower slowly.", targetMuscles: "Biceps", tips: ["Don't swing your body to lift the weight.", "Control the negative (lowering) phase."] },
             'Squats': { description: "Stand with your feet shoulder-width apart, with a barbell supported on your upper back. Lower your hips as if sitting in a chair, keeping your chest up and back straight. Go down until your thighs are at least parallel to the floor, then drive back up.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Keep your knees in line with your feet.", "Drive through your heels."] },
             'Leg Press': { description: "Sit on a leg press machine with your feet shoulder-width apart on the platform. Push the platform away by extending your knees. Slowly return to the starting position without locking your knees at the top.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Don't let your lower back round off the pad.", "Control the movement throughout."] },
+            'Romanian Deadlifts': { description: "Hold a barbell or dumbbells in front of your thighs. Hinge at your hips, keeping your legs almost straight but not locked. Lower the weight while keeping your back straight, feeling a stretch in your hamstrings. Return to the starting position by driving your hips forward.", targetMuscles: "Hamstrings, Glutes", tips: ["Keep the weight close to your body.", "Focus on the hip hinge movement."] },
+            'Leg Extensions': { description: "Sit on a leg extension machine with your legs under the pad. Extend your legs to lift the weight until they are straight. Lower the weight back down with control.", targetMuscles: "Quads", tips: ["Don't use momentum.", "Focus on squeezing your quads at the top."] },
             'Hamstring Curls': { description: "Lie face down on a hamstring curl machine with the pad resting on your lower calves. Curl your legs up towards your glutes. Squeeze your hamstrings at the top, then lower slowly.", targetMuscles: "Hamstrings", tips: ["Avoid using your lower back.", "Focus on a slow, controlled movement."] },
-            'Goblet Squats': { description: "Hold a single dumbbell or kettlebell vertically against your chest with both hands. With your feet shoulder-width apart, lower into a squat. Keep your chest up and elbows inside your knees. Drive back up.", targetMuscles: "Quads, Glutes, Core", tips: ["Keep your torso as upright as possible.", "Go as deep as you can comfortably."] },
-            'Dumbbell Bench Press': { description: "Lie on a flat bench with a dumbbell in each hand at your sides. Press the dumbbells up until your arms are fully extended. Lower them back down with control.", targetMuscles: "Chest, Shoulders, Triceps", tips: ["Don't let the dumbbells touch at the top.", "Allows for a greater range of motion than a barbell."] },
-            'Seated Cable Row': { description: "Sit at a cable row machine with your feet on the platform. Grasp the handle and pull it towards your abdomen, squeezing your back muscles. Slowly extend your arms back to the start.", targetMuscles: "Back, Biceps", tips: ["Keep your back straight and avoid rocking.", "Pull with your back, not just your arms."] },
+            'Calf Raises': { description: "Stand on a raised surface with your heels hanging off. Push through the balls of your feet to raise your heels as high as possible. Lower them slowly back to the starting position.", targetMuscles: "Calves", tips: ["Hold onto something for balance.", "Pause at the top for a moment."] },
             'Plank': { description: "Hold a push-up position, but with your weight resting on your forearms instead of your hands. Keep your body in a straight line from your head to your heels. Hold this position for the designated time.", targetMuscles: "Core, Abs", tips: ["Don't let your hips sag.", "Keep your neck in line with your spine."] },
             'Push-ups': { description: "Start in a high plank position with your hands under your shoulders. Lower your body until your chest nearly touches the floor. Push back up to the starting position, keeping your body in a straight line.", targetMuscles: "Chest, Shoulders, Triceps", tips: ["Keep your core engaged.", "Don't let your hips sag."] },
             'Pike Push-ups': { description: "Get into a downward dog yoga position. Your body should form an inverted V. Bend your elbows to lower the top of your head towards the floor. Press back up.", targetMuscles: "Shoulders, Triceps", tips: ["The more vertical your torso, the harder it is.", "Focus on pressing through your shoulders."] },
@@ -673,17 +713,34 @@
         // --- Food Database ---
          const foodDatabase = {
             'Apple (medium)': { calories: 95, protein: 1, carbs: 25 },
+            'Avocado (half)': { calories: 160, protein: 2, carbs: 9 },
             'Banana (medium)': { calories: 105, protein: 1, carbs: 27 },
+            'Blueberries (1 cup)': { calories: 85, protein: 1, carbs: 21 },
+            'Orange (medium)': { calories: 62, protein: 1, carbs: 15 },
+            'Strawberries (1 cup)': { calories: 49, protein: 1, carbs: 12 },
             'Chicken Breast (100g grilled)': { calories: 165, protein: 31, carbs: 0 },
             'Salmon (100g baked)': { calories: 206, protein: 22, carbs: 0 },
+            'Beef Steak (100g lean, grilled)': { calories: 250, protein: 26, carbs: 0 },
+            'Tuna (canned in water, 100g)': { calories: 116, protein: 26, carbs: 0 },
+            'Tofu (100g firm)': { calories: 76, protein: 8, carbs: 2 },
+            'Lentils (1 cup cooked)': { calories: 230, protein: 18, carbs: 40 },
+            'Chickpeas (1 cup cooked)': { calories: 269, protein: 15, carbs: 45 },
             'Brown Rice (1 cup cooked)': { calories: 215, protein: 5, carbs: 45 },
+            'White Rice (1 cup cooked)': { calories: 205, protein: 4, carbs: 45 },
             'Quinoa (1 cup cooked)': { calories: 222, protein: 8, carbs: 39 },
+            'Pasta (100g dry weight)': { calories: 371, protein: 13, carbs: 74 },
+            'Oats (1/2 cup dry)': { calories: 150, protein: 5, carbs: 27 },
             'Egg (1 large)': { calories: 78, protein: 6, carbs: 1 },
             'Almonds (28g)': { calories: 164, protein: 6, carbs: 6 },
+            'Peanut Butter (2 tbsp)': { calories: 190, protein: 8, carbs: 7 },
             'Broccoli (1 cup chopped)': { calories: 55, protein: 4, carbs: 11 },
             'Spinach (1 cup raw)': { calories: 7, protein: 1, carbs: 1 },
+            'Carrots (1 cup chopped)': { calories: 52, protein: 1, carbs: 12 },
+            'Bell Pepper (1 medium)': { calories: 24, protein: 1, carbs: 6 },
             'Sweet Potato (medium baked)': { calories: 103, protein: 2, carbs: 24 },
             'Greek Yogurt (100g plain, non-fat)': { calories: 59, protein: 10, carbs: 4 },
+            'Milk (1 cup, whole)': { calories: 149, protein: 8, carbs: 12 },
+            'Cheddar Cheese (28g)': { calories: 114, protein: 7, carbs: 1 },
             'Olive Oil (1 tbsp)': { calories: 119, protein: 0, carbs: 0 },
             'Whole Wheat Bread (1 slice)': { calories: 81, protein: 4, carbs: 14 }
         };
@@ -726,6 +783,7 @@
             const currentPage = Array.from(pages).find(p => !p.classList.contains('hidden'));
             
             if (currentPage && !isBackNavigation) {
+                if (!state.pageHistory) state.pageHistory = [];
                 state.pageHistory.push(currentPage.id);
             }
 
@@ -739,7 +797,7 @@
                 }
             });
 
-            backButton.classList.toggle('hidden', state.pageHistory.length === 0);
+            backButton.classList.toggle('hidden', !state.pageHistory || state.pageHistory.length === 0);
 
             // Special handling for pages that need data refresh on view
             if (pageId === 'report-page') renderReportChart();
@@ -780,15 +838,23 @@
             const target = e.target.closest('.nav-item');
             if (target && target.dataset.page) {
                 showPage(target.dataset.page);
+                 if (window.innerWidth < 768) { // Close menu on mobile nav click
+                    toggleMobileMenu();
+                }
             }
         }
         
         function handleBackClick() {
-            if (state.pageHistory.length > 0) {
+            if (state.pageHistory && state.pageHistory.length > 0) {
                 const previousPageId = state.pageHistory.pop();
                 showPage(previousPageId, true);
                 saveState();
             }
+        }
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+            menuOverlay.classList.toggle('hidden');
         }
 
         function handleAddMeal(e) {
@@ -828,6 +894,7 @@
             const amount = parseFloat(document.getElementById('expense-amount').value);
 
             if(!desc || isNaN(amount) || amount <= 0) return;
+            if(!state.expenses) state.expenses = [];
 
             state.expenses.push({
                 id: Date.now(),
@@ -861,6 +928,7 @@
             } else if (completeTarget) {
                 const day = completeTarget.dataset.day;
                 const today = new Date().toISOString().split('T')[0];
+                if(!state.completedWorkouts) state.completedWorkouts = {};
                 state.completedWorkouts[today] = day; 
                 saveState();
                 renderWorkoutPlan(); 
@@ -937,6 +1005,7 @@
             const newWeight = parseFloat(weightInput.value);
 
             if (isNaN(newWeight) || newWeight <= 0) return;
+            if(!state.progress) state.progress = [];
 
             state.progress.push({ date: new Date().toISOString().split('T')[0], weight: newWeight });
             state.user.weight = newWeight;
@@ -972,7 +1041,7 @@
             if (!state.user) return;
             const maintenanceCalories = calculateMaintenanceCalories();
             const today = new Date().toISOString().split('T')[0];
-            const mealsToday = state.meals[today] || [];
+            const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
             const caloriesConsumed = mealsToday.reduce((total, meal) => total + meal.calories, 0);
 
             document.getElementById('dashboard-calorie-goal').textContent = maintenanceCalories;
@@ -997,7 +1066,7 @@
         
         function renderDailyMeals() {
             const today = new Date().toISOString().split('T')[0];
-            const mealsToday = state.meals[today] || [];
+            const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
             const calorieGoal = calculateMaintenanceCalories();
 
             const totals = mealsToday.reduce((acc, meal) => {
@@ -1050,7 +1119,7 @@
             if (!workoutPlanContainer || !state.workoutPlan) return;
             workoutPlanContainer.innerHTML = '';
             const today = new Date().toISOString().split('T')[0];
-            const completedDay = state.completedWorkouts[today];
+            const completedDay = (state.completedWorkouts && state.completedWorkouts[today]) ? state.completedWorkouts[today] : null;
 
             for (const day in state.workoutPlan) {
                 const dayData = state.workoutPlan[day];
@@ -1124,7 +1193,7 @@
             if (!state.user) return;
             const { start, end } = getWeekRange(new Date());
 
-            const expensesThisWeek = state.expenses.filter(exp => {
+            const expensesThisWeek = (state.expenses || []).filter(exp => {
                 const expDate = new Date(exp.date);
                 return expDate >= start && expDate <= end;
             });
@@ -1138,7 +1207,8 @@
 
             expenseHistoryContainer.innerHTML = '';
             if (expensesThisWeek.length > 0) {
-                expensesThisWeek.forEach(exp => {
+                 const sortedExpenses = [...expensesThisWeek].sort((a,b) => new Date(b.date) - new Date(a.date));
+                sortedExpenses.forEach(exp => {
                     const li = document.createElement('li');
                     li.className = 'flex justify-between items-center text-sm p-3 bg-gray-50 rounded-md';
                     li.innerHTML = `
@@ -1182,8 +1252,8 @@
             const ctx = document.getElementById('progress-chart').getContext('2d');
             const currentMonthName = new Date().toLocaleString('default', { month: 'long' });
             document.getElementById('report-month-title').textContent = `Progress for ${currentMonthName}`;
-            const labels = state.progress.map(p => new Date(p.date).toLocaleDateString());
-            const data = state.progress.map(p => p.weight);
+            const labels = (state.progress || []).map(p => new Date(p.date).toLocaleDateString());
+            const data = (state.progress || []).map(p => p.weight);
 
             if (progressChartInstance) progressChartInstance.destroy();
 
@@ -1203,6 +1273,7 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     scales: { y: { beginAtZero: false } },
                     plugins: { legend: { display: false } }
                 }
@@ -1266,6 +1337,7 @@
             }
 
             const today = new Date().toISOString().split('T')[0];
+            if (!state.meals) state.meals = {};
             if (!state.meals[today]) state.meals[today] = [];
 
             state.meals[today].push({
@@ -1283,6 +1355,7 @@
         }
 
         function generateWorkoutPlan() {
+            if(!state.user) return;
             const goal = state.user.fitnessGoal;
             const location = state.user.workoutLocation;
             const plan = {};
