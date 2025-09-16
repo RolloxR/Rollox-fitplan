@@ -265,6 +265,13 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         <span>Fitness Schedule</span>
                     </a>
+                    <a data-page="builder-page" class="nav-item flex items-center space-x-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Workout Builder</span>
+                    </a>
                     <a data-page="library-page" class="nav-item flex items-center space-x-3">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -327,30 +334,42 @@
                             <p class="text-gray-500 mt-2">Here's a summary of your plan for today.</p>
 
                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-                                <!-- Calorie Tracker -->
-                                <div class="card p-6 flex flex-col justify-center text-center">
-                                    <h3 class="text-lg font-semibold text-gray-700">Calorie Tracker</h3>
-                                    <div class="mt-2">
-                                        <span id="dashboard-calories-consumed" class="text-5xl font-bold text-emerald-500">0</span>
-                                        <span class="text-2xl font-semibold text-gray-400">/</span>
-                                        <span id="dashboard-calorie-goal" class="text-3xl font-bold text-gray-500">2,200</span>
+                                <!-- Nutrition Tracker -->
+                                <div class="card p-6 lg:col-span-2">
+                                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Today's Nutrition</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                                        <div>
+                                            <p class="text-sm text-gray-500">Calories (kcal)</p>
+                                            <div class="mt-1">
+                                                <span id="dashboard-calories-consumed" class="text-4xl font-bold text-emerald-500">0</span>
+                                                <span class="text-xl font-semibold text-gray-400">/</span>
+                                                <span id="dashboard-calorie-goal" class="text-2xl font-bold text-gray-500">2,200</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Protein (g)</p>
+                                            <div class="mt-1">
+                                                <span id="dashboard-protein-consumed" class="text-4xl font-bold text-blue-500">0</span>
+                                                <span class="text-xl font-semibold text-gray-400">/</span>
+                                                <span id="dashboard-protein-goal" class="text-2xl font-bold text-gray-500">150</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-500">Carbs (g)</p>
+                                            <div class="mt-1">
+                                                <span id="dashboard-carbs-consumed" class="text-4xl font-bold text-orange-500">0</span>
+                                                <span class="text-xl font-semibold text-gray-400">/</span>
+                                                <span id="dashboard-carbs-goal" class="text-2xl font-bold text-gray-500">250</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p class="text-gray-500">Consumed / Goal (kcal)</p>
                                 </div>
+
                                 <!-- Current Weight -->
                                 <div class="card p-6 flex flex-col items-center justify-center text-center">
                                     <h3 class="text-lg font-semibold text-gray-700">Current Weight</h3>
-                                    <p id="dashboard-current-weight" class="text-5xl font-bold text-blue-500 mt-2">75</p>
+                                    <p id="dashboard-current-weight" class="text-5xl font-bold text-indigo-500 mt-2">75</p>
                                     <p class="text-gray-500">kg</p>
-                                </div>
-                                <!-- Quick Actions -->
-                                <div class="card p-6">
-                                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h3>
-                                    <div class="space-y-3">
-                                        <button onclick="app.showPage('diet-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Log a Meal</button>
-                                        <button onclick="app.showPage('fitness-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">View Workouts</button>
-                                        <button onclick="app.showPage('progress-page')" class="w-full text-left p-3 bg-gray-100 hover:bg-gray-200 rounded-md">Update Progress</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -408,7 +427,8 @@
                                                     <span id="summary-calories-consumed">0</span> / <span id="summary-calorie-goal" class="text-gray-500">2200</span> kcal
                                                 </p>
                                                 <p class="text-sm text-gray-500">
-                                                    P: <span id="summary-protein">0</span>g C: <span id="summary-carbs">0</span>g
+                                                    P: <span id="summary-protein-consumed">0</span>/<span id="summary-protein-goal">150</span>g &bull; 
+                                                    C: <span id="summary-carbs-consumed">0</span>/<span id="summary-carbs-goal">250</span>g
                                                 </p>
                                             </div>
                                         </div>
@@ -484,12 +504,36 @@
 
                         <!-- Fitness Page -->
                         <div id="fitness-page" class="page-content hidden">
-                            <h1 class="text-4xl font-bold text-gray-800">Your Weekly Fitness Schedule</h1>
-                            <p class="text-gray-500 mt-2">Click any exercise to see instructions. Mark workouts as complete to stay on track.</p>
-                            <div id="workout-plan-container" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="flex flex-wrap justify-between items-center gap-4 mb-8">
+                                <div>
+                                    <h1 class="text-4xl font-bold text-gray-800">Fitness Schedule</h1>
+                                    <p class="text-gray-500 mt-2">Select a plan and mark workouts as complete.</p>
+                                </div>
+                                <div>
+                                    <label for="plan-selector" class="block text-sm font-medium text-gray-700">Active Plan</label>
+                                    <select id="plan-selector" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm rounded-md"></select>
+                                </div>
+                            </div>
+                            <div id="workout-plan-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 <!-- Workout plan will be generated here by JS -->
                             </div>
                         </div>
+                        
+                        <!-- Workout Builder Page -->
+                        <div id="builder-page" class="page-content hidden">
+                             <div class="flex justify-between items-center mb-8">
+                                <div>
+                                    <h1 class="text-4xl font-bold text-gray-800">Workout Builder</h1>
+                                    <p class="text-gray-500 mt-2">Create and manage your custom workout routines.</p>
+                                </div>
+                                <button id="create-routine-btn" class="btn-primary">Create New Routine</button>
+                            </div>
+
+                            <div id="custom-routines-container" class="space-y-6">
+                                <!-- Custom routines will be listed here -->
+                            </div>
+                        </div>
+
 
                          <!-- Exercise Library Page -->
                         <div id="library-page" class="page-content hidden">
@@ -602,8 +646,11 @@
         </div>
     </div>
     
+    <!-- Modals -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-75 hidden z-40"></div>
+    
     <!-- Exercise Detail Modal -->
-    <div id="exercise-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+    <div id="exercise-modal" class="fixed inset-0 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto no-scrollbar relative">
             <button id="modal-close-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 text-3xl font-bold">&times;</button>
             <div class="p-6 border-b">
@@ -630,7 +677,7 @@
     </div>
     
     <!-- Add Food Modal -->
-    <div id="add-food-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 hidden z-50">
+    <div id="add-food-modal" class="fixed inset-0 flex items-center justify-center p-4 hidden z-50">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full relative">
             <button id="add-food-modal-close-btn" class="absolute top-3 right-4 text-gray-400 hover:text-gray-800 text-3xl font-bold">&times;</button>
             <div class="p-6 border-b">
@@ -655,12 +702,38 @@
         </div>
     </div>
 
+    <!-- Workout Builder Modal -->
+    <div id="builder-modal" class="fixed inset-0 flex items-center justify-center p-4 hidden z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h2 id="builder-modal-title" class="text-2xl font-bold text-gray-800">Create New Routine</h2>
+                <button id="builder-modal-close-btn" class="text-gray-400 hover:text-gray-800 text-3xl font-bold">&times;</button>
+            </div>
+            <div class="p-6 flex-1 overflow-y-auto no-scrollbar">
+                <form id="builder-form">
+                    <div>
+                        <label for="builder-routine-name" class="block text-sm font-medium text-gray-700">Routine Name</label>
+                        <input type="text" id="builder-routine-name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-emerald-500 focus:border-emerald-500" required>
+                    </div>
+                    <div id="builder-days-container" class="mt-6 space-y-6">
+                        <!-- Day sections will be generated here -->
+                    </div>
+                </form>
+            </div>
+            <div class="p-6 border-t flex justify-end gap-3 bg-gray-50 rounded-b-lg">
+                <button type="button" id="builder-modal-cancel-btn" class="btn-secondary">Cancel</button>
+                <button type="button" id="builder-modal-save-btn" class="btn-primary">Save Routine</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
     // Self-invoking function to encapsulate the application logic
     const app = (() => {
         // State management object
         let state = {};
+        let editingRoutineId = null; // Track which routine is being edited
 
         let progressChartInstance = null;
         let stopwatch = {
@@ -688,10 +761,14 @@
         const menuToggleBtn = document.getElementById('menu-toggle-btn');
         const sidebar = document.getElementById('sidebar');
         const menuOverlay = document.getElementById('menu-overlay');
+        const planSelector = document.getElementById('plan-selector');
+        const customRoutinesContainer = document.getElementById('custom-routines-container');
+        const builderModal = document.getElementById('builder-modal');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+
 
         // --- Initialization ---
         function init() {
-            // Check for a logged-in user first
             if (loadState()) {
                 showApp();
             } else {
@@ -719,20 +796,36 @@
             mealLogContainer.addEventListener('click', handleDeleteMeal);
             workoutPlanContainer.addEventListener('click', handleWorkoutClick);
             document.getElementById('profile-form').addEventListener('submit', handleProfileUpdate);
-            document.getElementById('modal-close-btn').addEventListener('click', closeExerciseModal);
-            document.getElementById('library-search').addEventListener('input', renderExerciseLibrary);
+            
             libraryContainer.addEventListener('click', handleWorkoutClick);
             document.getElementById('food-search').addEventListener('input', renderFoodResults);
             foodResultsContainer.addEventListener('click', handleFoodResultClick);
-            document.getElementById('add-food-modal-form').addEventListener('submit', handleAddFoodFromModal);
-            document.getElementById('add-food-modal-close-btn').addEventListener('click', closeAddFoodModal);
-            document.getElementById('add-food-modal-cancel-btn').addEventListener('click', closeAddFoodModal);
+            
             document.getElementById('add-expense-form').addEventListener('submit', handleAddExpense);
             expenseHistoryContainer.addEventListener('click', handleDeleteExpense);
 
             // Mobile menu listeners
             menuToggleBtn.addEventListener('click', toggleMobileMenu);
             menuOverlay.addEventListener('click', toggleMobileMenu);
+
+            // New Feature Listeners
+            planSelector.addEventListener('change', handlePlanSelection);
+            document.getElementById('create-routine-btn').addEventListener('click', () => openBuilderModal());
+            customRoutinesContainer.addEventListener('click', handleCustomRoutineClick);
+            
+            // Modal listeners
+            modalBackdrop.addEventListener('click', closeAllModals);
+            document.getElementById('modal-close-btn').addEventListener('click', closeExerciseModal);
+            document.getElementById('add-food-modal-close-btn').addEventListener('click', closeAddFoodModal);
+            document.getElementById('add-food-modal-cancel-btn').addEventListener('click', closeAddFoodModal);
+            document.getElementById('add-food-modal-form').addEventListener('submit', handleAddFoodFromModal);
+            document.getElementById('library-search').addEventListener('input', renderExerciseLibrary);
+            
+            // Builder modal listeners
+            document.getElementById('builder-modal-close-btn').addEventListener('click', closeBuilderModal);
+            document.getElementById('builder-modal-cancel-btn').addEventListener('click', closeBuilderModal);
+            document.getElementById('builder-modal-save-btn').addEventListener('click', handleSaveRoutine);
+            document.getElementById('builder-days-container').addEventListener('click', handleBuilderDayClick);
         }
         
         // --- Exercise Database ---
@@ -761,7 +854,7 @@
             'Bodyweight Rows': { description: "Lie under a sturdy table or a low bar. Grab the edge with an overhand grip. Pull your chest up to the table or bar, keeping your body straight. Lower yourself back down.", targetMuscles: "Back, Biceps", tips: ["The more parallel your body is to the floor, the harder it is.", "Squeeze your shoulder blades."] },
             'Supermans': { description: "Lie face down on the floor with your arms and legs extended. Simultaneously lift your arms, chest, and legs off the floor, holding the contraction at the top. Lower back down.", targetMuscles: "Lower Back", tips: ["Keep your neck in a neutral position.", "This is a great exercise for posture."] },
             'Bodyweight Squats': { description: "Stand with your feet shoulder-width apart. Lower your hips as if sitting in a chair, keeping your chest up and back straight. Go down until your thighs are parallel to the floor, then drive back up.", targetMuscles: "Quads, Hamstrings, Glutes", tips: ["Focus on good form before adding speed or reps.", "Keep weight in your heels."] },
-            'Lunges': { description: "Step forward with one leg and lower your hips until both knees are bent at a 90-degree angle. Your front knee should be directly above your ankle, and your back knee should hover just above the ground. Push off your front foot to return to the start.", targetMuscles: "Quads, Glutes, Hamstrings", tips: ["Keep your upper body straight.", "Take a controlled step."] },
+            'Lunges': { description: "Step forward with one leg and lower your hips until both knees are bent at a 9-degree angle. Your front knee should be directly above your ankle, and your back knee should hover just above the ground. Push off your front foot to return to the start.", targetMuscles: "Quads, Glutes, Hamstrings", tips: ["Keep your upper body straight.", "Take a controlled step."] },
             'Glute Bridges': { description: "Lie on your back with your knees bent and feet flat on the floor, hip-width apart. Lift your hips off the floor until your body forms a straight line from your shoulders to your knees. Squeeze your glutes at the top. Lower back down.", targetMuscles: "Glutes, Hamstrings", tips: ["Don't overextend your back at the top.", "Drive through your heels."] },
             'Burpees': { description: "From a standing position, squat down, place your hands on the floor, and kick your feet back into a plank position. Perform a push-up, then jump your feet back towards your hands. Jump up explosively with your hands overhead.", targetMuscles: "Full Body", tips: ["Pace yourself.", "Can be modified by removing the push-up or jump."] },
             'Jumping Jacks': { description: "Stand with your feet together and your arms at your sides. Simultaneously jump your feet out to the sides while raising your arms overhead. Jump back to the starting position.", targetMuscles: "Full Body, Cardio", tips: ["Stay light on your feet.", "A great warm-up exercise."] },
@@ -886,7 +979,6 @@
             appContainer.style.display = 'block';
             appContainer.classList.remove('hidden');
             
-            // If user has no profile data, force them to the setup page
             if (!state.user) {
                 showAuthPage('setup-page');
                 return;
@@ -895,6 +987,7 @@
             updateDashboard();
             renderProgressHistory();
             renderDailyMeals();
+            populatePlanSelector();
             renderWorkoutPlan();
             showPage('dashboard-page');
         }
@@ -922,11 +1015,12 @@
             // Special handling for pages that need data refresh on view
             if (pageId === 'report-page') renderReportChart();
             if (pageId === 'diet-page') renderDailyMeals();
-            if (pageId === 'fitness-page') renderWorkoutPlan();
+            if (pageId === 'fitness-page') { populatePlanSelector(); renderWorkoutPlan(); }
             if (pageId === 'library-page') renderExerciseLibrary();
             if (pageId === 'food-page') renderFoodResults();
             if (pageId === 'profile-page') renderProfilePage();
             if (pageId === 'budget-page') renderBudgetPage();
+            if (pageId === 'builder-page') renderCustomRoutines();
         }
 
         // --- Event Handlers ---
@@ -944,10 +1038,13 @@
                 workoutLocation: document.getElementById('workout-location').value,
             };
             
+            // Initialize all data structures for a new user
             state.progress = [{ date: new Date().toISOString().split('T')[0], weight: state.user.weight }];
             state.meals = {};
             state.expenses = [];
             state.completedWorkouts = {};
+            state.customWorkouts = [];
+            state.activeWorkoutPlan = 'generated';
             generateWorkoutPlan();
             
             saveState();
@@ -1072,6 +1169,8 @@
 
             saveState();
             updateDashboard();
+            populatePlanSelector(); // Refresh plan selector in case generated plan name changes
+            renderWorkoutPlan();
 
             const successMsg = document.getElementById('profile-success-message');
             successMsg.classList.remove('hidden');
@@ -1155,17 +1254,113 @@
             addMealToState({ ...state.foodToAdd, type: mealType });
             closeAddFoodModal();
         }
+        
+        function handlePlanSelection(e) {
+            state.activeWorkoutPlan = e.target.value;
+            saveState();
+            renderWorkoutPlan();
+        }
+        
+        function handleCustomRoutineClick(e) {
+            const editBtn = e.target.closest('.edit-routine-btn');
+            const deleteBtn = e.target.closest('.delete-routine-btn');
+            
+            if (editBtn) {
+                const routineId = parseInt(editBtn.dataset.id, 10);
+                openBuilderModal(routineId);
+            }
+            if (deleteBtn) {
+                const routineId = parseInt(deleteBtn.dataset.id, 10);
+                if (confirm('Are you sure you want to delete this routine?')) {
+                    state.customWorkouts = state.customWorkouts.filter(r => r.id !== routineId);
+                    if (state.activeWorkoutPlan == routineId) {
+                        state.activeWorkoutPlan = 'generated';
+                    }
+                    saveState();
+                    renderCustomRoutines();
+                }
+            }
+        }
+        
+        function handleSaveRoutine() {
+            const nameInput = document.getElementById('builder-routine-name');
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert('Please enter a routine name.');
+                return;
+            }
+
+            const routine = {
+                id: editingRoutineId || Date.now(),
+                name: name,
+                plan: {}
+            };
+
+            const dayContainers = document.querySelectorAll('.builder-day');
+            dayContainers.forEach(container => {
+                const day = container.dataset.day;
+                const exercises = [];
+                const exerciseItems = container.querySelectorAll('.builder-exercise-item');
+                exerciseItems.forEach(item => {
+                    exercises.push({
+                        name: item.dataset.name,
+                        sets: item.querySelector('input').value
+                    });
+                });
+                routine.plan[day] = { exercises: exercises }; // Simplified structure
+            });
+
+            if (editingRoutineId) {
+                const index = state.customWorkouts.findIndex(r => r.id === editingRoutineId);
+                state.customWorkouts[index] = routine;
+            } else {
+                state.customWorkouts.push(routine);
+            }
+            
+            saveState();
+            closeBuilderModal();
+            renderCustomRoutines();
+        }
+        
+        function handleBuilderDayClick(e) {
+            const addBtn = e.target.closest('.builder-add-exercise-btn');
+            const removeBtn = e.target.closest('.builder-remove-exercise-btn');
+            
+            if (addBtn) {
+                const day = addBtn.dataset.day;
+                const exerciseName = prompt(`Enter the exact name of the exercise from the library to add to ${day}:`);
+                if (exerciseName && exerciseDatabase[exerciseName]) {
+                    addExerciseToBuilderDay(day, exerciseName);
+                } else if(exerciseName) {
+                    alert('Exercise not found in library. Please check spelling and capitalization.');
+                }
+            }
+            
+            if (removeBtn) {
+                removeBtn.closest('.builder-exercise-item').remove();
+            }
+        }
+
 
         // --- Rendering ---
         function updateDashboard() {
             if (!state.user) return;
-            const maintenanceCalories = calculateMaintenanceCalories();
+            const { calories, protein, carbs } = calculateMacroGoals();
             const today = new Date().toISOString().split('T')[0];
             const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
-            const caloriesConsumed = mealsToday.reduce((total, meal) => total + meal.calories, 0);
+            const consumed = mealsToday.reduce((acc, meal) => {
+                acc.calories += meal.calories;
+                acc.protein += (meal.protein || 0);
+                acc.carbs += (meal.carbs || 0);
+                return acc;
+            }, { calories: 0, protein: 0, carbs: 0 });
 
-            document.getElementById('dashboard-calorie-goal').textContent = maintenanceCalories;
-            document.getElementById('dashboard-calories-consumed').textContent = caloriesConsumed;
+            document.getElementById('dashboard-calorie-goal').textContent = calories;
+            document.getElementById('dashboard-calories-consumed').textContent = consumed.calories;
+            document.getElementById('dashboard-protein-goal').textContent = protein;
+            document.getElementById('dashboard-protein-consumed').textContent = consumed.protein;
+            document.getElementById('dashboard-carbs-goal').textContent = carbs;
+            document.getElementById('dashboard-carbs-consumed').textContent = consumed.carbs;
             document.getElementById('dashboard-current-weight').textContent = state.user.weight;
         }
 
@@ -1187,7 +1382,7 @@
         function renderDailyMeals() {
             const today = new Date().toISOString().split('T')[0];
             const mealsToday = (state.meals && state.meals[today]) ? state.meals[today] : [];
-            const calorieGoal = calculateMaintenanceCalories();
+            const goals = calculateMacroGoals();
 
             const totals = mealsToday.reduce((acc, meal) => {
                 acc.calories += meal.calories;
@@ -1197,9 +1392,12 @@
             }, { calories: 0, protein: 0, carbs: 0 });
 
             document.getElementById('summary-calories-consumed').textContent = totals.calories;
-            document.getElementById('summary-calorie-goal').textContent = calorieGoal;
-            document.getElementById('summary-protein').textContent = totals.protein;
-            document.getElementById('summary-carbs').textContent = totals.carbs;
+            document.getElementById('summary-calorie-goal').textContent = goals.calories;
+            document.getElementById('summary-protein-consumed').textContent = totals.protein;
+            document.getElementById('summary-protein-goal').textContent = goals.protein;
+            document.getElementById('summary-carbs-consumed').textContent = totals.carbs;
+            document.getElementById('summary-carbs-goal').textContent = goals.carbs;
+
 
             const mealsByType = mealsToday.reduce((acc, meal) => {
                 if (!acc[meal.type]) acc[meal.type] = [];
@@ -1235,36 +1433,82 @@
             });
         }
         
+        function populatePlanSelector() {
+            planSelector.innerHTML = '';
+            const generatedOpt = document.createElement('option');
+            generatedOpt.value = 'generated';
+            generatedOpt.textContent = 'Generated Plan';
+            planSelector.appendChild(generatedOpt);
+
+            (state.customWorkouts || []).forEach(routine => {
+                const opt = document.createElement('option');
+                opt.value = routine.id;
+                opt.textContent = routine.name;
+                planSelector.appendChild(opt);
+            });
+
+            planSelector.value = state.activeWorkoutPlan || 'generated';
+        }
+
         function renderWorkoutPlan() {
-            if (!workoutPlanContainer || !state.workoutPlan) return;
+            if (!workoutPlanContainer || !state.user) return;
+            
+            let planToRender;
+            if (state.activeWorkoutPlan === 'generated' || !state.activeWorkoutPlan) {
+                planToRender = state.workoutPlan;
+            } else {
+                const customPlan = (state.customWorkouts || []).find(r => r.id == state.activeWorkoutPlan);
+                planToRender = customPlan ? customPlan.plan : state.workoutPlan;
+            }
+
             workoutPlanContainer.innerHTML = '';
             const today = new Date().toISOString().split('T')[0];
             const completedDay = (state.completedWorkouts && state.completedWorkouts[today]) ? state.completedWorkouts[today] : null;
+            
+            const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-            for (const day in state.workoutPlan) {
-                const dayData = state.workoutPlan[day];
+            daysOfWeek.forEach(day => {
+                const dayData = planToRender[day] || { title: "Rest Day", exercises: [] };
                 const dayCard = document.createElement('div');
                 dayCard.className = 'card p-6';
                 
                 const isCompleted = completedDay === day;
                 
-                let exercisesHtml = `<div class="flex justify-between items-start"><div><h3 class="text-xl font-bold mb-2 text-blue-600">${day}</h3><p class="font-semibold mb-4">${dayData.title}</p></div></div><ul class="space-y-3">`;
+                let exercisesHtml = `<div class="flex justify-between items-start"><div><h3 class="text-xl font-bold mb-2 text-blue-600">${day}</h3><p class="font-semibold mb-4">${dayData.title || ''}</p></div></div><ul class="space-y-3">`;
 
-                if (dayData.exercises) {
+                if (dayData.exercises && dayData.exercises.length > 0) {
                     dayData.exercises.forEach(ex => {
                          exercisesHtml += `<li><p><a href="#" class="exercise-link" data-exercise-name="${ex.name}">${ex.name}</a></p><p class="text-sm text-gray-600">${ex.sets}</p></li>`;
                     });
+                     exercisesHtml += `</ul><button data-day="${day}" class="complete-workout-btn btn-secondary mt-4 w-full ${isCompleted ? 'btn-secondary-complete' : ''}">${isCompleted ? 'Completed ✔' : 'Mark as Complete'}</button>`;
                 } else {
-                     exercisesHtml += `<li><p class="font-semibold">Rest Day</p></li>`;
+                     exercisesHtml += `<li><p class="font-semibold">Rest Day</p></li></ul>`;
                 }
 
-                exercisesHtml += `</ul>`;
-                if(dayData.exercises) {
-                    exercisesHtml += `<button data-day="${day}" class="complete-workout-btn btn-secondary mt-4 w-full ${isCompleted ? 'btn-secondary-complete' : ''}">${isCompleted ? 'Completed ✔' : 'Mark as Complete'}</button>`;
-                }
                 dayCard.innerHTML = exercisesHtml;
                 workoutPlanContainer.appendChild(dayCard);
+            });
+        }
+        
+        function renderCustomRoutines() {
+            customRoutinesContainer.innerHTML = '';
+            if (!state.customWorkouts || state.customWorkouts.length === 0) {
+                customRoutinesContainer.innerHTML = `<p class="text-center text-gray-500">You haven't created any custom routines yet.</p>`;
+                return;
             }
+
+            state.customWorkouts.forEach(routine => {
+                const card = document.createElement('div');
+                card.className = 'card p-4 flex justify-between items-center';
+                card.innerHTML = `
+                    <h3 class="font-bold text-lg">${routine.name}</h3>
+                    <div class="flex gap-2">
+                        <button class="edit-routine-btn btn-secondary text-sm" data-id="${routine.id}">Edit</button>
+                        <button class="delete-routine-btn bg-red-500 hover:bg-red-600 text-white font-semibold text-sm py-2 px-4 rounded-md" data-id="${routine.id}">Delete</button>
+                    </div>
+                `;
+                customRoutinesContainer.appendChild(card);
+            });
         }
         
         function renderExerciseLibrary() {
@@ -1274,6 +1518,7 @@
 
             Object.keys(exerciseDatabase)
                 .filter(name => name.toLowerCase().includes(searchTerm))
+                .sort()
                 .forEach(name => {
                     const exercise = exerciseDatabase[name];
                     const card = document.createElement('div');
@@ -1296,6 +1541,7 @@
 
             Object.keys(foodDatabase)
                 .filter(name => name.toLowerCase().includes(searchTerm))
+                .sort()
                 .forEach(name => {
                     const food = foodDatabase[name];
                     const card = document.createElement('div');
@@ -1418,22 +1664,104 @@
             
             document.getElementById('modal-exercise-svg').innerHTML = `<p class="text-gray-400">Exercise illustration not available</p>`;
             
+            modalBackdrop.classList.remove('hidden');
             exerciseModal.classList.remove('hidden');
         }
 
         function closeExerciseModal() {
             exerciseModal.classList.add('hidden');
+            if(builderModal.classList.contains('hidden') && addFoodModal.classList.contains('hidden')) {
+                 modalBackdrop.classList.add('hidden');
+            }
         }
         
         function openAddFoodModal() {
             if (!state.foodToAdd) return;
             document.getElementById('add-food-modal-food-name-span').textContent = state.foodToAdd.name;
+            modalBackdrop.classList.remove('hidden');
             addFoodModal.classList.remove('hidden');
         }
 
         function closeAddFoodModal() {
             state.foodToAdd = null;
             addFoodModal.classList.add('hidden');
+            if(builderModal.classList.contains('hidden') && exerciseModal.classList.contains('hidden')) {
+                 modalBackdrop.classList.add('hidden');
+            }
+        }
+        
+        function openBuilderModal(routineId = null) {
+            editingRoutineId = routineId;
+            const title = document.getElementById('builder-modal-title');
+            const nameInput = document.getElementById('builder-routine-name');
+            const daysContainer = document.getElementById('builder-days-container');
+            daysContainer.innerHTML = ''; // Clear previous content
+
+            const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            let routine = null;
+
+            if (routineId) {
+                title.textContent = 'Edit Routine';
+                routine = state.customWorkouts.find(r => r.id === routineId);
+                nameInput.value = routine.name;
+            } else {
+                title.textContent = 'Create New Routine';
+                nameInput.value = '';
+            }
+
+            daysOfWeek.forEach(day => {
+                const dayExercises = (routine && routine.plan[day]) ? routine.plan[day].exercises : [];
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'builder-day card p-4';
+                dayDiv.dataset.day = day;
+                let exercisesHTML = '';
+                dayExercises.forEach(ex => {
+                    exercisesHTML += `
+                         <div class="builder-exercise-item flex items-center gap-2 mb-2" data-name="${ex.name}">
+                            <p class="flex-1 font-semibold">${ex.name}</p>
+                            <input type="text" value="${ex.sets}" placeholder="Sets x Reps" class="w-24 border-gray-300 rounded-md shadow-sm text-sm">
+                            <button type="button" class="builder-remove-exercise-btn text-red-500 hover:text-red-700">&times;</button>
+                        </div>
+                    `;
+                });
+
+                dayDiv.innerHTML = `
+                    <h4 class="font-bold border-b pb-2 mb-3">${day}</h4>
+                    <div class="builder-exercise-list space-y-2">${exercisesHTML}</div>
+                    <button type="button" data-day="${day}" class="builder-add-exercise-btn btn-secondary text-sm mt-3 w-full">Add Exercise</button>
+                `;
+                daysContainer.appendChild(dayDiv);
+            });
+
+            modalBackdrop.classList.remove('hidden');
+            builderModal.classList.remove('hidden');
+        }
+
+        function addExerciseToBuilderDay(day, exerciseName) {
+            const dayContainer = document.querySelector(`.builder-day[data-day="${day}"] .builder-exercise-list`);
+            const exerciseItem = document.createElement('div');
+            exerciseItem.className = 'builder-exercise-item flex items-center gap-2 mb-2';
+            exerciseItem.dataset.name = exerciseName;
+            exerciseItem.innerHTML = `
+                <p class="flex-1 font-semibold">${exerciseName}</p>
+                <input type="text" placeholder="Sets x Reps" class="w-24 border-gray-300 rounded-md shadow-sm text-sm">
+                <button type="button" class="builder-remove-exercise-btn text-red-500 hover:text-red-700 font-bold text-xl">&times;</button>
+            `;
+            dayContainer.appendChild(exerciseItem);
+        }
+
+        function closeBuilderModal() {
+            builderModal.classList.add('hidden');
+            if(exerciseModal.classList.contains('hidden') && addFoodModal.classList.contains('hidden')) {
+                 modalBackdrop.classList.add('hidden');
+            }
+            editingRoutineId = null;
+        }
+        
+        function closeAllModals() {
+            closeExerciseModal();
+            closeAddFoodModal();
+            closeBuilderModal();
         }
 
         // --- Helper & Generation Functions ---
@@ -1498,11 +1826,11 @@
             if (goal === 'build-muscle') {
                 plan.Monday = { title: "Push Day (Chest, Shoulders, Triceps)", exercises: exercises[location].push };
                 plan.Tuesday = { title: "Pull Day (Back, Biceps)", exercises: exercises[location].pull };
-                plan.Wednesday = { title: "Rest Day" };
+                plan.Wednesday = { title: "Rest Day", exercises: [] };
                 plan.Thursday = { title: "Leg Day", exercises: exercises[location].legs };
                 plan.Friday = { title: "Push Day 2", exercises: exercises[location].push };
                 plan.Saturday = { title: "Pull Day 2", exercises: exercises[location].pull };
-                plan.Sunday = { title: "Rest Day" };
+                plan.Sunday = { title: "Rest Day", exercises: [] };
             } else { // lose-weight
                 plan.Monday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
                 plan.Tuesday = { title: "Cardio / Active Recovery", exercises: [{ name: "Jumping Jacks", sets: "30 minutes" }] };
@@ -1510,17 +1838,37 @@
                 plan.Thursday = { title: "Cardio / Active Recovery", exercises: [{ name: "Mountain Climbers", sets: "30 minutes" }] };
                 plan.Friday = { title: "Full Body Strength", exercises: exercises[location].fullBody };
                 plan.Saturday = { title: "Light Activity", exercises: [{ name: "30-45 min walk, jog, or cycle", sets: "" }] };
-                plan.Sunday = { title: "Rest Day" };
+                plan.Sunday = { title: "Rest Day", exercises: [] };
             }
 
             state.workoutPlan = plan;
         }
 
-        function calculateMaintenanceCalories(activityFactor = 1.375) {
-             if (!state.user) return 2000;
-             const { weight, height, age, gender } = state.user;
-             let bmr = (gender === 'Male') ? (10 * weight + 6.25 * height - 5 * age + 5) : (10 * weight + 6.25 * height - 5 * age - 161);
-             return Math.round(bmr * activityFactor);
+        function calculateMacroGoals() {
+            if (!state.user) return { calories: 2000, protein: 150, carbs: 250 };
+            const { weight, height, age, gender, fitnessGoal } = state.user;
+            
+            // 1. Calculate BMR (Basal Metabolic Rate)
+            let bmr = (gender === 'Male') ? (10 * weight + 6.25 * height - 5 * age + 5) : (10 * weight + 6.25 * height - 5 * age - 161);
+            
+            // 2. Adjust for activity level (TDEE - Total Daily Energy Expenditure)
+            const tdee = bmr * 1.375; // Assuming light activity
+            
+            // 3. Adjust for fitness goal
+            const calorieGoal = fitnessGoal === 'build-muscle' ? tdee + 300 : tdee - 500;
+            
+            // 4. Calculate Macros
+            const proteinGoal = Math.round(weight * 1.8); // 1.8g of protein per kg of bodyweight
+            const fatCalories = calorieGoal * 0.25; // 25% of calories from fat
+            const proteinCalories = proteinGoal * 4;
+            const carbCalories = calorieGoal - proteinCalories - fatCalories;
+            const carbGoal = Math.round(carbCalories / 4);
+
+            return {
+                calories: Math.round(calorieGoal),
+                protein: proteinGoal,
+                carbs: carbGoal
+            };
         }
 
         // --- Public API ---
